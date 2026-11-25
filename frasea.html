@@ -495,6 +495,26 @@
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm = w => w.toLowerCase().replace(/^['’]+|['’]+$/g,'');
   const simp = x => norm(x).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/’/g,"'");
+  // Comparación flexible de respuestas: ignora mayúsculas, tildes, apóstrofos y letras comidas
+  const bare = x => simp(x).replace(/[^\p{L}\p{N}]/gu,'');
+  function lev(a, b){
+    const d = Array.from({length:a.length+1}, (_,i)=>[i]);
+    for(let j=1;j<=b.length;j++) d[0][j]=j;
+    for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++)
+      d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+    return d[a.length][b.length];
+  }
+  // true = correcta · 'typo' = una letra mal en palabra larga · false = incorrecta
+  function matches(typed, word){
+    const v = bare(typed), w = bare(word);
+    if(!v) return false;
+    if(v===w) return true;                                   // i'll = ill, don't = dont
+    const t = word.trim();
+    if(/['’]$/.test(t) && v.startsWith(w) && v.length-w.length<=2) return true;   // mucha' = muchas, goin' = going, pa' = para
+    if(/^['’]/.test(t) && v.endsWith(w) && v.length-w.length<=3) return true;     // 'cause = because, 'em = them, 'til = until
+    if(w.length>=5 && Math.abs(v.length-w.length)<=1 && lev(v,w)<=1) return 'typo';
+    return false;
+  }
   const WORD_RE = /([\p{L}\p{M}\p{N}'’]+)/u;
   let toastT;
   const toast = msg => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2000); };
@@ -852,15 +872,15 @@
 
   // Respuestas
   function distractors(answer){
-    const a = simp(answer);
+    const a = bare(answer);
     const near = new Set(), all = new Set();
     const bl = G.blanks[G.cur]?.line ?? 0;
     G.parts.forEach((parts,i)=>parts.forEach((p,k)=>{
-      if(k%2!==1 || !/\p{L}/u.test(p) || simp(p)===a) return;
+      if(k%2!==1 || !/\p{L}/u.test(p) || bare(p)===a) return;
       const w = p.length>1 && p===p.toUpperCase() ? p : (i===bl && k===1 ? p : p);
       (Math.abs(i-bl)<=4 ? near : all).add(w.replace(/^./, ch=>answer[0]===answer[0].toUpperCase()?ch.toUpperCase():ch.toLowerCase()));
     }));
-    const uniq = arr => { const seen=new Set(); return arr.filter(w=>{ const s=simp(w); if(seen.has(s)||s===a) return false; seen.add(s); return true; }); };
+    const uniq = arr => { const seen=new Set(); return arr.filter(w=>{ const s=bare(w); if(seen.has(s)||s===a) return false; seen.add(s); return true; }); };
     let pick = uniq(shuffle([...near]));
     if(pick.length<3) pick = uniq([...pick, ...shuffle([...all])]);
     const extra = ['the','and','you','love','time','day','night','heart','home','light','away','never'];
@@ -883,9 +903,10 @@
       $$('#answers .opts button').forEach(btn => btn.onclick = () => answer(btn.dataset.o, btn));
     } else {
       const keep = $('#w-input')?.value || '';
-      box.innerHTML = `<div class="write"><input type="text" id="w-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe la palabra (${b.word.length} letras)"><button class="primary" id="w-ok">OK</button><button id="w-hint" title="Pista">💡</button><button id="w-skip" title="Saltar">⏭</button></div>`;
+      box.innerHTML = `<div class="write"><input type="text" id="w-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe la palabra (${bare(b.word).length} letras)"><button class="primary" id="w-ok">OK</button><button id="w-hint" title="Pista">💡</button><button id="w-skip" title="Saltar">⏭</button></div>`;
       const inp = $('#w-input'); inp.value = G.fails ? keep : '';
       inp.onkeydown = e => { e.stopPropagation(); if(e.key==='Enter') answer(inp.value, inp); if(e.key==='Escape') inp.blur(); };
+      inp.oninput = () => { if(matches(inp.value, b.word)===true) answer(inp.value, inp); }; // acierto: avanza sin pulsar Enter
       $('#w-ok').onclick = () => answer(inp.value, inp);
       $('#w-hint').onclick = () => { G.fails = Math.max(G.fails,1); const h=(+inp.dataset.h||0)+1; inp.dataset.h=h; inp.value = b.word.slice(0, Math.min(b.word.length-1, h)); inp.focus(); };
       $('#w-skip').onclick = () => answer('', inp, true);
@@ -900,7 +921,9 @@
   }
   function answer(val, el, giveUp){
     const bi = G.cur, b = G.blanks[bi]; if(!b || b.state) return;
-    if(!giveUp && simp(val)===simp(b.word)){
+    const ok = !giveUp && matches(val, b.word);
+    if(ok){
+      if(ok==='typo') setTimeout(()=>toast('¡Casi! Se escribe: '+b.word), 300);
       const mult = 1 + Math.min(3, Math.floor(G.combo/5));
       const pts = (G.fails?5:10)*mult;
       G.score += pts; G.combo++; G.hits++; b.state = G.fails ? 'late' : 'ok';
