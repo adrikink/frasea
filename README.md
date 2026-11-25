@@ -1,15 +1,24 @@
 # Frasea
 
-Aprende idiomas con vídeos: subtítulos dobles, palabras clicables con traducción, bucle por frase, auto-pausa y repaso con repetición espaciada. Todo en un único archivo HTML y los datos se guardan en el navegador.
+Aprende idiomas jugando con las letras de canciones.
 
-## Uso
+**Úsala aquí:** https://adrikink.github.io/frasea/
 
-- **Mac:** doble clic en `Abrir Frasea.command` (arranca un servidor local y abre el navegador; necesario para YouTube).
-- **Cualquier sistema:** en esta carpeta ejecuta `python3 -m http.server 8765` y abre http://localhost:8765/frasea.html
-- También puedes abrir `frasea.html` directamente (los vídeos locales funcionan; YouTube puede no hacerlo).
+## Cómo funciona
 
-En `ejemplo/` hay un vídeo y subtítulos de prueba.
+1. Elige el idioma que quieres aprender y una canción.
+2. Elige modo de juego:
+   - **Selección**: completa los huecos eligiendo entre 4 opciones.
+   - **Escritura**: escribe las palabras que oyes.
+   - **Karaoke**: letra completa con traducción, bucle y auto-pausa para estudiar.
+3. Elige dificultad: Principiante (10% de palabras), Intermedio (25%), Avanzado (50%) o Experto (100%).
+4. El vídeo se detiene al final de cada línea hasta que completes sus huecos. Puntos, combos, estrellas y récords por canción.
 
-## Pasar el vocabulario a otro ordenador
+Pulsa cualquier palabra para traducirla y guardarla en tu vocabulario, que repasas con tarjetas de repetición espaciada.
 
-Los datos viven en el navegador de cada ordenador. Usa **Vocabulario → Exportar copia (JSON)** en uno e **Importar copia** en el otro.
+## Canciones
+
+Incluye canciones de dominio público (sin vídeo se leen en voz alta; puedes añadirles un vídeo de YouTube y sincronizar la letra).
+Para añadir cualquier canción: **＋ Añadir canción** → enlace de YouTube + letra (.lrc/.srt/.vtt o texto normal) → **⏱ Sincronizar letra** marcando cada línea al ritmo.
+
+Los datos se guardan en el navegador. Para pasarlos a otro ordenador: Vocabulario → Exportar copia / Importar copia.

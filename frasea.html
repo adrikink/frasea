@@ -3,174 +3,309 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Frasea — aprende idiomas con vídeos</title>
+<title>Frasea — aprende idiomas con canciones</title>
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
-    --text:#e8eaf0; --muted:#9aa1b1; --accent:#5b8cff; --accent2:#3ccf91;
-    --warn:#ffb547; --bad:#ff5c6c; --radius:12px;
+    --bg:#0c0a18; --panel:#151229; --panel2:#1e1a38; --line:#2c2750;
+    --text:#f2efff; --muted:#a19cc4; --accent:#8b5cf6; --accent-b:#ec4899;
+    --grad:linear-gradient(135deg,#8b5cf6,#ec4899); --ok:#34d399; --warn:#fbbf24; --bad:#f43f5e; --radius:16px;
+    --o1:#f43f5e; --o2:#10b981; --o3:#f59e0b; --o4:#6366f1;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px}
-  button,select,input{font:inherit;color:inherit}
-  button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+  body{margin:0;font-family:"Nunito","Segoe UI Rounded",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+  button,select,input,textarea{font:inherit;color:inherit}
+  button{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;transition:transform .1s,border-color .15s,filter .15s}
   button:hover{border-color:var(--accent)}
-  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
-  input[type=text],input[type=search],select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
-  header{display:flex;align-items:center;gap:20px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
-  header h1{font-size:19px;margin:0;letter-spacing:.3px}
-  header h1 span{color:var(--accent)}
-  nav{display:flex;gap:6px}
-  nav button{background:none;border:none;color:var(--muted);padding:8px 12px}
-  nav button.active{color:var(--text);background:var(--panel2);border-radius:8px}
-  .badge{background:var(--accent2);color:#04150d;border-radius:10px;padding:0 7px;font-size:12px;margin-left:4px;font-weight:600}
-  main{padding:18px 20px;max-width:1400px;margin:0 auto}
-  .tab{display:none}.tab.active{display:block}
-  .player-layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px}
-  @media (max-width:1000px){.player-layout{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
-  .loaders{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-  .loaders label.file{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
-  .loaders label.file:hover{border-color:var(--accent)}
-  .loaders input[type=file]{display:none}
-  .yt{display:flex;gap:6px;flex:1;min-width:260px}
-  .yt input{flex:1}
-  .video-wrap{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:16/9}
+  button:active{transform:scale(.96)}
+  button.primary{background:var(--grad);border:none;color:#fff;font-weight:800}
+  button.on{background:var(--grad);border-color:transparent;color:#fff}
+  input[type=text],input[type=search],select,textarea{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+  textarea{width:100%;min-height:110px;resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+  .muted{color:var(--muted)}
+  h2{margin:0 0 14px;font-size:22px;font-weight:900}
+  header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:10px 22px;border-bottom:1px solid var(--line);background:rgba(12,10,24,.85);backdrop-filter:blur(12px);flex-wrap:wrap}
+  header h1{font-size:22px;margin:0;font-weight:900;cursor:pointer}
+  header h1 span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  nav{display:flex;gap:4px;flex-wrap:wrap}
+  nav button{background:none;border:none;color:var(--muted);padding:8px 14px;font-weight:700}
+  nav button.active{color:#fff;background:var(--panel2)}
+  .badge{background:var(--accent-b);color:#fff;border-radius:10px;padding:0 7px;font-size:12px;margin-left:4px;font-weight:800}
+  .lang-btn{margin-left:auto;font-weight:800}
+  main{max-width:1300px;margin:0 auto;padding:0 22px 40px}
+  .screen{display:none}.screen.active{display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  body.in-game header{display:none}
+  body.in-game main{max-width:none;padding:0}
+
+  /* ---------- Inicio ---------- */
+  .hero-stats{margin:20px 0;border-radius:22px;padding:22px;background:var(--grad);display:flex;align-items:center;gap:26px;flex-wrap:wrap;box-shadow:0 20px 60px rgba(139,92,246,.25)}
+  .lvl{position:relative;width:96px;height:96px}
+  .lvl svg{transform:rotate(-90deg)}
+  .lvl div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:30px;line-height:1}
+  .lvl small{font-size:11px;font-weight:700;opacity:.85}
+  .hs{display:flex;gap:28px;flex-wrap:wrap}
+  .hs div{font-weight:700;opacity:.92}
+  .hs b{display:block;font-size:26px;font-weight:900}
+  .home-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .home-tools input{flex:1;min-width:200px}
+  .row-title{display:flex;align-items:center;justify-content:space-between;margin:24px 0 10px}
+  .row-title h3{margin:0;font-size:18px;font-weight:900}
+  .carousel{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,230px);gap:16px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory}
+  .carousel::-webkit-scrollbar{height:8px}.carousel::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px}
+  .song{scroll-snap-align:start;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative}
+  .song:hover{transform:translateY(-3px);border-color:var(--accent)}
+  .cover{aspect-ratio:16/10;background:var(--grad);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:40px;position:relative}
+  .cover .lv{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);border-radius:999px;padding:2px 9px;font-size:11px;font-weight:800}
+  .cover .fl{position:absolute;right:8px;top:8px;font-size:18px}
+  .song .meta{padding:10px 12px}
+  .song .title{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .song .artist{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stars{color:var(--warn);font-size:13px;letter-spacing:1px;margin-top:4px}
+  .stars .off{color:var(--line)}
+  .song.add .cover{background:var(--panel2);color:var(--muted)}
+  .empty-row{color:var(--muted);padding:16px;border:1px dashed var(--line);border-radius:var(--radius)}
+
+  /* ---------- Ficha de canción ---------- */
+  .song-hero{position:relative;margin:0 -22px;height:300px;overflow:hidden;display:flex;align-items:flex-end}
+  .song-hero .bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:grayscale(.2) brightness(.55)}
+  .song-hero .bg.grad{background:var(--grad);filter:none;opacity:.7}
+  .song-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 30%,var(--bg))}
+  .song-hero .info{position:relative;z-index:1;padding:22px;width:100%;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  .song-hero h2{font-size:34px;margin:0}
+  .song-hero .back{position:absolute;top:16px;left:16px;z-index:2;background:rgba(0,0,0,.5);border:none;font-size:18px}
+  .song-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .song-actions button,.song-actions label{background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);font-size:13px}
+  .modes{max-width:560px;margin:26px auto;display:grid;gap:12px}
+  .modes h3{text-align:center;margin:0 0 6px;font-size:14px;letter-spacing:2px;color:var(--muted)}
+  .mode-btn{display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:16px;font-weight:900;font-size:17px;text-align:left;border:none;color:#fff}
+  .mode-btn small{display:block;font-weight:600;font-size:12px;opacity:.85}
+  .mode-btn .ic{font-size:28px;width:40px;text-align:center}
+  .mode-btn.m1{background:linear-gradient(135deg,#7c3aed,#a855f7)}
+  .mode-btn.m2{background:linear-gradient(135deg,#db2777,#f472b6)}
+  .mode-btn.m3{background:linear-gradient(135deg,#0891b2,#22d3ee)}
+  .mode-btn.d1{background:#10b981}.mode-btn.d2{background:#eab308}.mode-btn.d3{background:#f97316}.mode-btn.d4{background:#e11d48}
+  .mode-btn .best{margin-left:auto;font-size:14px;color:#fff}
+  .warn-box{background:#3a2a0a;border:1px solid var(--warn);border-radius:12px;padding:10px 14px;color:var(--warn);font-size:14px;max-width:560px;margin:16px auto 0}
+
+  /* ---------- Partida ---------- */
+  .game{display:flex;flex-direction:column;height:100vh;background:radial-gradient(1000px 500px at 50% 0,#241a4a,var(--bg))}
+  .hud{display:flex;align-items:center;gap:16px;padding:10px 18px;background:rgba(0,0,0,.35);border-bottom:1px solid var(--line)}
+  .hud .score{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;min-width:90px}
+  .hud .counts{font-weight:800;font-size:14px;display:flex;gap:10px}
+  .hud .counts .g{color:var(--ok)}.hud .counts .r{color:var(--bad)}.hud .counts .c{color:var(--warn)}
+  .hud .bar{flex:1;height:8px;background:var(--panel2);border-radius:99px;overflow:hidden}
+  .hud .bar div{height:100%;width:0;background:var(--grad);transition:width .3s}
+  .hud .ttl{font-size:13px;color:var(--muted);max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hud .exit{background:none;border:none;font-size:22px;padding:2px 8px}
+  .stage{flex:0 0 auto;display:flex;justify-content:center;background:#000}
+  .video-wrap{position:relative;width:min(100%,calc(40vh * 16 / 9));aspect-ratio:16/9;background:#000}
   .video-wrap video,.video-wrap #yt-player,.video-wrap iframe{width:100%;height:100%;display:block}
-  .empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:20px;gap:6px}
-  .subs{min-height:96px;margin-top:12px;padding:14px;border-radius:10px;background:var(--panel2);text-align:center}
-  .sub-main{font-size:24px;line-height:1.5}
-  .sub-trans{color:var(--muted);font-size:17px;margin-top:6px}
-  .subs.hide .sub-main,.subs.hide .sub-trans{visibility:hidden}
-  .subs.blur .sub-main,.subs.blur .sub-trans{filter:blur(7px);transition:filter .2s}
-  .subs.blur:hover .sub-main,.subs.blur:hover .sub-trans{filter:none}
-  .subs.no-trans .sub-trans{display:none}
-  .w{cursor:pointer;border-radius:4px;padding:0 1px}
-  .w:hover{background:rgba(91,140,255,.25)}
-  .w.saved{color:var(--accent2);border-bottom:2px dotted var(--accent2)}
-  .controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}
-  .controls .sep{width:1px;height:26px;background:var(--line);margin:0 4px}
-  .controls .info{margin-left:auto;color:var(--muted);font-size:13px}
-  .transcript{height:calc(100vh - 170px);min-height:400px;display:flex;flex-direction:column}
-  .transcript-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
-  .transcript-head h3{margin:0;font-size:15px}
-  .lines{overflow-y:auto;flex:1;padding-right:4px}
-  .line{padding:8px 10px;border-radius:8px;cursor:pointer;border-left:3px solid transparent}
-  .line:hover{background:var(--panel2)}
-  .line.active{background:var(--panel2);border-left-color:var(--accent)}
-  .line .t{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
-  .line .tr{color:var(--muted);font-size:13px;margin-top:2px}
-  .popup{position:fixed;z-index:50;width:300px;background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);display:none}
-  .popup h4{margin:0 0 4px;font-size:20px;display:flex;justify-content:space-between;align-items:center}
-  .popup .tr-text{color:var(--accent2);font-size:16px;min-height:22px;margin:6px 0}
+  .clockview{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:20px;background:radial-gradient(circle at 50% 40%,#3b1f7a,#0c0a18);color:var(--muted)}
+  .clockview .big{font-size:52px}
+  .clockview .t{font-weight:900;color:var(--text);font-size:22px}
+  .lyrics-wrap{flex:1;position:relative;min-height:0}
+  .lyrics{position:absolute;inset:0;overflow-y:auto;padding:18vh 16px;text-align:center;scroll-behavior:smooth;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+  .lyr{padding:6px 0;font-size:21px;font-weight:800;color:rgba(242,239,255,.32);transition:color .2s,transform .2s;cursor:pointer;line-height:1.6}
+  .lyr.active{color:var(--text);transform:scale(1.04)}
+  .lyr.past{color:rgba(242,239,255,.5)}
+  .lyr .ltr{font-size:14px;font-weight:600;color:var(--accent-b);opacity:.8}
+  .lyrics.blur .lyr{filter:blur(6px)}.lyrics.blur:hover .lyr{filter:none}
+  .lyrics.hide .lyr .lt{visibility:hidden}
+  .w{border-radius:6px;padding:0 2px;cursor:pointer}
+  .lyr.active .w:hover{background:rgba(139,92,246,.35)}
+  .w.saved{border-bottom:2px dotted var(--ok)}
+  .blank{display:inline-block;border-bottom:3px solid rgba(236,72,153,.6);margin:0 3px;height:1.15em;vertical-align:-2px;border-radius:2px}
+  .blank.cur{border-bottom-color:var(--accent-b);background:rgba(236,72,153,.18);box-shadow:0 0 0 2px rgba(236,72,153,.5);animation:pulse 1.2s infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 5px rgba(236,72,153,.15)}}
+  .blank.ok,.blank.late,.blank.miss{border:none;height:auto;padding:0 3px;border-radius:6px}
+  .lyr .blank.ok{color:#04150d;background:var(--ok)}
+  .lyr .blank.late{color:#231a02;background:var(--warn)}
+  .lyr .blank.miss{color:#fff;background:var(--bad)}
+  .lyr:not(.active) .blank.ok,.lyr:not(.active) .blank.late,.lyr:not(.active) .blank.miss{opacity:.6}
+  .tools{display:flex;justify-content:center;gap:6px;padding:6px 10px;flex-wrap:wrap}
+  .tools button,.tools select{padding:6px 12px;font-size:13px}
+  .answers{padding:10px 16px 18px;background:rgba(0,0,0,.3);border-top:1px solid var(--line)}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:760px;margin:0 auto}
+  .opts button{border:none;border-radius:14px;padding:16px;font-size:20px;font-weight:900;color:#fff;position:relative}
+  .opts button small{position:absolute;left:12px;top:8px;font-size:11px;opacity:.7}
+  .opts button:nth-child(1){background:var(--o1)}.opts button:nth-child(2){background:var(--o2)}
+  .opts button:nth-child(3){background:var(--o3)}.opts button:nth-child(4){background:var(--o4)}
+  .opts button.bad{filter:grayscale(1) brightness(.5)}
+  .opts button.good{outline:4px solid #fff}
+  .write{display:flex;gap:8px;max-width:620px;margin:0 auto}
+  .write input{flex:1;font-size:20px;font-weight:800;text-align:center;border:2px solid var(--accent-b)!important}
+  .ans-msg{text-align:center;color:var(--muted);padding:8px;font-weight:700}
+  @keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .shake{animation:shake .22s 2}
+  .floatpts{position:fixed;font-weight:900;font-size:26px;color:var(--ok);pointer-events:none;z-index:95;transition:transform .8s,opacity .8s}
+
+  /* ---------- Modales ---------- */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
+  .modal-bg.show{display:flex}
+  .modal{max-width:640px;width:100%;max-height:90vh;overflow:auto}
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+  .form .full{grid-column:1/-1}
+  .form label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--muted)}
+  .form input,.form select{width:100%}
+  label.file{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;font-size:14px;display:inline-block}
+  label.file input{display:none}
+  .results{text-align:center;max-width:420px}
+  .results .st{font-size:46px;letter-spacing:6px;color:var(--warn)}
+  .results .st .off{color:var(--line)}
+  .results .sc{font-size:44px;font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .results .row{display:flex;justify-content:center;gap:18px;margin:10px 0 18px;font-weight:800}
+  .results .btns{display:grid;gap:8px}
+  .langs{display:grid;gap:6px;max-height:60vh;overflow:auto}
+  .langs button{text-align:left;border-radius:12px;padding:10px 14px;font-weight:700;display:flex;gap:10px;align-items:center}
+  .langs button .n{margin-left:auto;color:var(--muted);font-size:12px}
+
+  /* ---------- Otras pestañas ---------- */
+  .popup{position:fixed;z-index:80;width:310px;background:var(--panel);border:1px solid var(--accent);border-radius:16px;padding:16px;box-shadow:0 16px 50px rgba(0,0,0,.6);display:none}
+  .popup h4{margin:0 0 4px;font-size:22px;display:flex;justify-content:space-between;align-items:center;font-weight:900}
+  .popup .tr-text{color:var(--accent-b);font-size:17px;min-height:22px;margin:6px 0;font-weight:700}
   .popup input{width:100%;margin:6px 0}
   .popup .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .popup .links{font-size:12px;color:var(--muted);margin-top:8px}
+  .popup .links{font-size:12px;color:var(--muted);margin-top:10px}
   .popup .links a{color:var(--accent)}
-  .x{background:none;border:none;color:var(--muted);font-size:20px;padding:0 4px}
+  .x{background:none;border:none;color:var(--muted);font-size:20px;padding:0 6px}
   table{width:100%;border-collapse:collapse}
-  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-  th{color:var(--muted);font-weight:500;font-size:13px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:13px}
   td.ctx{color:var(--muted);font-size:13px;max-width:420px}
   td input{width:100%}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:20px 0 14px}
   .toolbar .grow{flex:1}
   .review{max-width:620px;margin:20px auto;text-align:center}
-  .flash{min-height:260px;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:30px}
-  .flash .front{font-size:34px;font-weight:600}
+  .flash{min-height:270px;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:30px}
+  .flash .front{font-size:36px;font-weight:900}
   .flash .ctx{color:var(--muted);font-size:16px;font-style:italic}
-  .flash .back{font-size:24px;color:var(--accent2)}
+  .flash .back{font-size:26px;color:var(--accent-b);font-weight:800}
   .grades{display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap}
-  .grades button{min-width:110px}
+  .grades button{min-width:110px;border-radius:14px}
   .grades small{display:block;color:var(--muted);font-size:11px}
-  .stats{display:flex;gap:12px;justify-content:center;margin-bottom:12px;color:var(--muted)}
-  .stats b{color:var(--text)}
-  .settings{max-width:640px;display:grid;gap:14px}
+  .rstats{display:flex;gap:12px;justify-content:center;margin-bottom:12px;color:var(--muted)}
+  .rstats b{color:var(--text)}
+  .dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0 18px}
+  .dash .card b{display:block;font-size:28px;font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .week{display:flex;gap:6px;margin-top:8px}
+  .week div{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+  .week i{display:block;height:26px;border-radius:8px;background:var(--panel2);margin-bottom:4px}
+  .week i.on{background:var(--grad)}
+  .settings{max-width:680px;display:grid;gap:12px;margin-top:20px}
   .setting{display:flex;justify-content:space-between;align-items:center;gap:20px}
   .setting p{margin:2px 0 0;color:var(--muted);font-size:13px}
-  .help kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px}
+  .help kbd{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px}
   .help li{margin:5px 0}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:10px 16px;border-radius:10px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--accent);padding:10px 18px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:96;font-weight:800}
   .toast.show{opacity:1}
-  .muted{color:var(--muted)}
+  @media (max-width:700px){ .lyr{font-size:18px} .opts button{font-size:17px;padding:13px} .hud .ttl{display:none} .song-hero h2{font-size:26px} }
 </style>
 </head>
 <body>
 <header>
-  <h1>Fra<span>sea</span></h1>
+  <h1 id="logo">Fra<span>sea</span></h1>
   <nav>
-    <button data-tab="player" class="active">▶ Reproductor</button>
-    <button data-tab="vocab">📚 Vocabulario <span class="badge" id="vocab-count">0</span></button>
-    <button data-tab="review">🧠 Repaso <span class="badge" id="due-count">0</span></button>
-    <button data-tab="settings">⚙ Ajustes</button>
+    <button data-screen="home" class="active">🏠 Inicio</button>
+    <button data-screen="vocab">📚 Vocabulario <span class="badge" id="vocab-count">0</span></button>
+    <button data-screen="review">🧠 Repaso <span class="badge" id="due-count">0</span></button>
+    <button data-screen="progress">📈 Progreso</button>
+    <button data-screen="settings">⚙ Ajustes</button>
   </nav>
+  <button class="lang-btn" id="lang-btn" title="Cambiar idioma">🌍</button>
 </header>
 
 <main>
-  <!-- REPRODUCTOR -->
-  <section class="tab active" id="tab-player">
-    <div class="player-layout">
-      <div>
-        <div class="loaders">
-          <label class="file">🎬 Vídeo local<input type="file" id="video-file" accept="video/*,audio/*"></label>
-          <label class="file">💬 Subtítulos (idioma que aprendes)<input type="file" id="sub-file" accept=".srt,.vtt,.txt"></label>
-          <label class="file">🌐 Subtítulos traducción<input type="file" id="trans-file" accept=".srt,.vtt,.txt"></label>
-          <div class="yt">
-            <input type="text" id="yt-url" placeholder="o pega un enlace de YouTube…">
-            <button id="yt-load">Cargar</button>
-          </div>
-        </div>
-        <div class="video-wrap" id="video-wrap">
-          <video id="video" controls style="display:none"></video>
-          <div id="yt-player" style="display:none"></div>
-          <div class="empty" id="empty">
-            <div style="font-size:40px">🎞</div>
-            <div>Carga un vídeo local o un enlace de YouTube,<br>y después sus subtítulos (.srt o .vtt).</div>
-            <div style="font-size:13px">Haz clic en cualquier palabra para traducirla y guardarla.</div>
-          </div>
-        </div>
-        <div class="subs" id="subs">
-          <div class="sub-main" id="sub-main"><span class="muted">—</span></div>
-          <div class="sub-trans" id="sub-trans"></div>
-        </div>
-        <div class="controls">
-          <button id="b-prev" title="Frase anterior (A / ←)">⏮ Anterior</button>
-          <button id="b-replay" title="Repetir frase (R)">↻ Repetir</button>
-          <button id="b-play" class="primary" title="Reproducir / pausa (Espacio)">⏯</button>
-          <button id="b-next" title="Frase siguiente (D / →)">Siguiente ⏭</button>
-          <div class="sep"></div>
-          <button id="b-loop" title="Repetir en bucle la frase actual (L)">🔁 Bucle</button>
-          <button id="b-autopause" title="Pausar al final de cada frase (P)">⏸ Auto-pausa</button>
-          <button id="b-hide" title="Ocultar / difuminar subtítulos (H)">👁 Visibles</button>
-          <button id="b-trans" title="Mostrar traducción (T)">🌐 Traducción</button>
-          <button id="b-speak" title="Leer la frase en voz alta (S)">🔊</button>
-          <button id="b-translate-line" title="Traducir la frase actual">Traducir frase</button>
-          <select id="speed" title="Velocidad">
-            <option value="0.5">0.5×</option><option value="0.65">0.65×</option><option value="0.75">0.75×</option>
-            <option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option>
-          </select>
-          <span class="info" id="info"></span>
-        </div>
+  <!-- INICIO -->
+  <section class="screen active" id="s-home">
+    <div class="hero-stats">
+      <div class="lvl">
+        <svg width="96" height="96"><circle cx="48" cy="48" r="42" stroke="rgba(255,255,255,.25)" stroke-width="8" fill="none"/><circle id="lvl-ring" cx="48" cy="48" r="42" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
+        <div><small>NIVEL</small><span id="lvl-n">1</span></div>
       </div>
+      <div class="hs">
+        <div><b id="h-points">0</b>puntos</div>
+        <div><b id="h-streak">0</b>🔥 días de racha</div>
+        <div><b id="h-words">0</b>palabras</div>
+        <div><b id="h-songs">0</b>canciones jugadas</div>
+      </div>
+    </div>
+    <div class="home-tools">
+      <input type="search" id="lib-search" placeholder="Buscar canción o artista…">
+      <button class="primary" id="add-song-btn">＋ Añadir canción</button>
+    </div>
+    <div id="rows"></div>
+  </section>
 
-      <div class="card transcript">
-        <div class="transcript-head">
-          <h3>Transcripción</h3>
-          <input type="search" id="line-search" placeholder="Buscar…" style="width:150px">
+  <!-- FICHA DE CANCIÓN -->
+  <section class="screen" id="s-song">
+    <div class="song-hero">
+      <div class="bg" id="sd-bg"></div>
+      <button class="back" id="sd-back">←</button>
+      <div class="info">
+        <div>
+          <div class="muted" id="sd-meta"></div>
+          <h2 id="sd-title"></h2>
+          <div class="muted" id="sd-artist" style="font-size:17px"></div>
         </div>
-        <div class="lines" id="lines"><div class="muted">Aún no hay subtítulos cargados.</div></div>
+        <div class="song-actions">
+          <button id="sd-video">🔗 Vídeo de YouTube</button>
+          <label class="file">📁 Audio/vídeo local<input type="file" id="sd-local" accept="video/*,audio/*"></label>
+          <button id="sd-sync">⏱ Sincronizar letra</button>
+          <button id="sd-trans">🌐 Traducción</button>
+          <button id="sd-del">🗑</button>
+        </div>
       </div>
+    </div>
+    <div id="sd-warn"></div>
+    <div class="modes" id="sd-modes"></div>
+  </section>
+
+  <!-- PARTIDA -->
+  <section class="screen" id="s-game">
+    <div class="game">
+      <div class="hud">
+        <button class="exit" id="g-exit" title="Salir (Esc)">✕</button>
+        <div class="score" id="g-score">0</div>
+        <div class="counts"><span class="g" id="g-hits">✓ 0</span><span class="r" id="g-miss">✗ 0</span><span class="c" id="g-combo">×1</span></div>
+        <div class="bar"><div id="g-bar"></div></div>
+        <div class="ttl" id="g-title"></div>
+      </div>
+      <div class="stage">
+        <div class="video-wrap" id="video-wrap">
+          <video id="video" playsinline style="display:none"></video>
+          <div id="yt-player" style="display:none"></div>
+          <div class="clockview" id="clockview"></div>
+        </div>
+      </div>
+      <div class="tools" id="tools">
+        <button id="t-prev" title="Línea anterior (←)">⏮</button>
+        <button id="t-play" title="Reproducir / pausa (Espacio)">⏯</button>
+        <button id="t-next" title="Línea siguiente (→)">⏭</button>
+        <button id="t-replay" title="Repetir línea (R)">↻</button>
+        <select id="speed" title="Velocidad">
+          <option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option>
+        </select>
+        <span id="kara-tools" style="display:contents">
+          <button id="t-loop" title="Bucle de la línea (L)">🔁 Bucle</button>
+          <button id="t-auto" title="Pausar al final de cada línea (P)">⏸ Auto-pausa</button>
+          <button id="t-trans" title="Mostrar traducción (T)">🌐 Traducción</button>
+          <button id="t-hide" title="Ocultar letra (H)">👁 Letra</button>
+          <button id="t-speak" title="Leer la línea (S)">🔊</button>
+          <button id="t-trline" title="Traducir la línea con el traductor">Traducir línea</button>
+        </span>
+      </div>
+      <div class="lyrics-wrap"><div class="lyrics" id="lyrics"></div></div>
+      <div class="answers" id="answers"></div>
     </div>
   </section>
 
   <!-- VOCABULARIO -->
-  <section class="tab" id="tab-vocab">
+  <section class="screen" id="s-vocab">
     <div class="toolbar">
       <input type="search" id="vocab-search" placeholder="Buscar palabra o traducción…" class="grow">
       <button id="add-word">+ Añadir palabra</button>
-      <button id="export-json">Exportar copia (JSON)</button>
-      <label class="file" style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer">Importar copia<input type="file" id="import-json" accept=".json" style="display:none"></label>
+      <button id="export-json">Exportar copia</button>
+      <label class="file">Importar copia<input type="file" id="import-json" accept=".json"></label>
       <button id="export-csv">Exportar CSV (Anki)</button>
     </div>
     <div class="card">
@@ -178,54 +313,102 @@
         <thead><tr><th>Palabra</th><th>Traducción</th><th>Contexto</th><th>Próximo repaso</th><th></th></tr></thead>
         <tbody id="vocab-body"></tbody>
       </table>
-      <div class="muted" id="vocab-empty" style="padding:20px;text-align:center">Todavía no has guardado palabras. Haz clic en una palabra de los subtítulos.</div>
+      <div class="muted" id="vocab-empty" style="padding:20px;text-align:center">Todavía no has guardado palabras. Haz clic en una palabra de la letra mientras juegas.</div>
     </div>
   </section>
 
   <!-- REPASO -->
-  <section class="tab" id="tab-review">
+  <section class="screen" id="s-review">
     <div class="review">
-      <div class="stats"><span>Pendientes hoy: <b id="r-due">0</b></span><span>Total: <b id="r-total">0</b></span><span>Repasadas hoy: <b id="r-done">0</b></span></div>
+      <div class="rstats"><span>Pendientes: <b id="r-due">0</b></span><span>Total: <b id="r-total">0</b></span><span>Repasadas hoy: <b id="r-done">0</b></span></div>
       <div class="card flash" id="flash"></div>
       <div class="grades" id="grades" style="display:none">
-        <button data-g="0" style="border-color:var(--bad)">Otra vez<small>1 (&lt;1 min)</small></button>
+        <button data-g="0" style="border-color:var(--bad)">Otra vez<small>1</small></button>
         <button data-g="3" style="border-color:var(--warn)">Difícil<small>2</small></button>
         <button data-g="4" style="border-color:var(--accent)">Bien<small>3</small></button>
-        <button data-g="5" style="border-color:var(--accent2)">Fácil<small>4</small></button>
+        <button data-g="5" style="border-color:var(--ok)">Fácil<small>4</small></button>
       </div>
-      <p class="muted" style="font-size:13px;margin-top:18px">Espacio para mostrar la respuesta · 1–4 para puntuar. Repetición espaciada (algoritmo SM-2).</p>
+      <p class="muted" style="font-size:13px;margin-top:18px">Espacio muestra la respuesta · 1–4 para puntuar · Repetición espaciada (SM-2)</p>
     </div>
   </section>
 
+  <!-- PROGRESO -->
+  <section class="screen" id="s-progress">
+    <div class="dash">
+      <div class="card"><b id="d-streak">0</b>días de racha</div>
+      <div class="card"><b id="d-points">0</b>puntos</div>
+      <div class="card"><b id="d-words">0</b>palabras guardadas</div>
+      <div class="card"><b id="d-songs">0</b>canciones jugadas</div>
+      <div class="card"><b id="d-acc">—</b>aciertos</div>
+    </div>
+    <div class="card"><b>Últimos 7 días</b><div class="week" id="week"></div></div>
+  </section>
+
   <!-- AJUSTES -->
-  <section class="tab" id="tab-settings">
+  <section class="screen" id="s-settings">
     <div class="settings">
-      <div class="card setting"><div><b>Idioma que aprendes</b><p>Se usa para traducir y para la voz.</p></div>
-        <select id="src-lang"></select></div>
-      <div class="card setting"><div><b>Tu idioma</b><p>Idioma al que se traducen las palabras.</p></div>
-        <select id="tgt-lang"></select></div>
-      <div class="card setting"><div><b>Traducción automática en línea</b><p>Consulta el servicio gratuito MyMemory al hacer clic en una palabra. Si lo desactivas, todo queda 100% local y escribes tú la traducción.</p></div>
-        <input type="checkbox" id="online" style="width:20px;height:20px"></div>
-      <div class="card setting"><div><b>Pausar al hacer clic en una palabra</b><p>Detiene el vídeo mientras consultas.</p></div>
-        <input type="checkbox" id="pause-on-click" style="width:20px;height:20px"></div>
-      <div class="card setting"><div><b>Desfase de subtítulos</b><p>Adelanta (−) o retrasa (+) los subtítulos en segundos.</p></div>
-        <input type="text" id="offset" style="width:80px" value="0"></div>
+      <div class="card setting"><div><b>Idioma que aprendes</b><p>Filtra las canciones de inicio y se usa para la voz.</p></div><select id="src-lang"></select></div>
+      <div class="card setting"><div><b>Tu idioma</b><p>Idioma al que se traducen las palabras.</p></div><select id="tgt-lang"></select></div>
+      <div class="card setting"><div><b>Traducción automática en línea</b><p>Usa el servicio gratuito MyMemory al pulsar una palabra. Desactívalo para que todo sea 100% local.</p></div><input type="checkbox" id="online" style="width:20px;height:20px"></div>
+      <div class="card setting"><div><b>Pausar al pulsar una palabra</b></div><input type="checkbox" id="pause-on-click" style="width:20px;height:20px"></div>
+      <div class="card setting"><div><b>Desfase de la letra</b><p>Adelanta (−) o retrasa (+) la letra en segundos.</p></div><input type="text" id="offset" style="width:80px" value="0"></div>
       <div class="card help">
-        <b>Atajos de teclado</b>
+        <b>Cómo funciona</b>
         <ul>
-          <li><kbd>Espacio</kbd> reproducir / pausa</li>
-          <li><kbd>A</kbd> o <kbd>←</kbd> frase anterior · <kbd>D</kbd> o <kbd>→</kbd> frase siguiente</li>
-          <li><kbd>R</kbd> repetir frase · <kbd>L</kbd> bucle · <kbd>P</kbd> auto-pausa</li>
-          <li><kbd>H</kbd> visibles / difuminados / ocultos · <kbd>T</kbd> traducción · <kbd>S</kbd> leer en voz alta</li>
-          <li><kbd>Esc</kbd> cerrar la ventana de la palabra</li>
+          <li><b>Selección</b>: elige la palabra que falta entre 4 opciones (<kbd>1</kbd>–<kbd>4</kbd>).</li>
+          <li><b>Escritura</b>: escribe la palabra que oyes y pulsa <kbd>Enter</kbd>.</li>
+          <li><b>Karaoke</b>: letra completa, traducción, bucle y auto-pausa para estudiar.</li>
+          <li>El vídeo se detiene al final de una línea si te queda un hueco por completar.</li>
+          <li>Dificultad: Principiante 10% · Intermedio 25% · Avanzado 50% · Experto 100% de las palabras.</li>
+          <li><kbd>Espacio</kbd> pausa · <kbd>←</kbd>/<kbd>→</kbd> línea anterior/siguiente · <kbd>R</kbd> repetir · <kbd>Esc</kbd> salir</li>
         </ul>
-        <p class="muted" style="font-size:13px">Todo se guarda en este navegador (localStorage). Usa "Exportar copia" en Vocabulario para hacer copias de seguridad.</p>
+        <p class="muted" style="font-size:13px">Formatos de letra: <b>.lrc</b>, <b>.srt</b>, <b>.vtt</b> o texto normal (y después ⏱ Sincronizar). Todo se guarda en este navegador; usa "Exportar copia" para pasarlo a otro ordenador.</p>
       </div>
-      <div class="card setting"><div><b>Borrar todos los datos</b><p>Elimina vocabulario, ajustes y subtítulos guardados.</p></div>
-        <button id="wipe" style="border-color:var(--bad)">Borrar</button></div>
+      <div class="card setting"><div><b>Borrar todos los datos</b><p>Elimina canciones añadidas, vocabulario, progreso y ajustes.</p></div><button id="wipe" style="border-color:var(--bad)">Borrar</button></div>
     </div>
   </section>
 </main>
+
+<!-- Modal: añadir canción -->
+<div class="modal-bg" id="song-modal">
+  <div class="card modal">
+    <h2>Añadir canción</h2>
+    <div class="form">
+      <label>Título<input type="text" id="m-title"></label>
+      <label>Artista<input type="text" id="m-artist"></label>
+      <label class="full">Enlace de YouTube<input type="text" id="m-yt" placeholder="https://www.youtube.com/watch?v=…"></label>
+      <label>Idioma<select id="m-lang"></select></label>
+      <label>Nivel<select id="m-level"><option>Básico</option><option selected>Intermedio</option><option>Avanzado</option></select></label>
+      <label class="full">Letra — archivo .lrc / .srt / .vtt, o pégala abajo (también vale texto normal sin tiempos)
+        <input type="file" id="m-lyrics-file" accept=".lrc,.srt,.vtt,.txt"></label>
+      <label class="full"><textarea id="m-lyrics" placeholder="[00:12.30] Primera línea…&#10;[00:15.80] Segunda línea…&#10;&#10;o simplemente la letra, una línea por verso"></textarea></label>
+      <label class="full">Letra traducida (opcional, mismas líneas)
+        <textarea id="m-trans" style="min-height:70px"></textarea></label>
+    </div>
+    <p class="muted" style="font-size:13px">Si pegas la letra sin tiempos, después pulsa <b>⏱ Sincronizar letra</b> en la ficha de la canción y marca cada línea al ritmo.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="m-cancel">Cancelar</button>
+      <button class="primary" id="m-save">Guardar canción</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: traducción -->
+<div class="modal-bg" id="trans-modal">
+  <div class="card modal">
+    <h2>Traducción de la letra</h2>
+    <p class="muted" style="font-size:13px">Pega la traducción con una línea por cada verso (en el mismo orden), o un archivo .lrc/.srt/.vtt.</p>
+    <label class="file" style="margin-bottom:10px">📄 Cargar archivo<input type="file" id="tm-file" accept=".lrc,.srt,.vtt,.txt"></label>
+    <textarea id="tm-text" style="min-height:220px"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button id="tm-cancel">Cancelar</button>
+      <button class="primary" id="tm-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal genérico -->
+<div class="modal-bg" id="dlg"><div class="card modal results" id="dlg-body"></div></div>
 
 <!-- Ventana de palabra -->
 <div class="popup" id="popup">
@@ -243,70 +426,180 @@
 
 <script>
 (() => {
-  // ---------- Utilidades ----------
+  // =================== Utilidades ===================
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const LS = {
     get(k, d){ try{ const v = localStorage.getItem('frasea_'+k); return v===null ? d : JSON.parse(v); }catch{ return d; } },
-    set(k, v){ localStorage.setItem('frasea_'+k, JSON.stringify(v)); }
+    set(k, v){ try{ localStorage.setItem('frasea_'+k, JSON.stringify(v)); }catch{ toast('No queda espacio en el navegador'); } }
   };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const fmt = t => { t = Math.max(0,t); const m = Math.floor(t/60), s = Math.floor(t%60); return `${m}:${String(s).padStart(2,'0')}`; };
   const norm = w => w.toLowerCase().replace(/^['’]+|['’]+$/g,'');
+  const simp = x => norm(x).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/’/g,"'");
+  const WORD_RE = /([\p{L}\p{M}\p{N}'’]+)/u;
   let toastT;
-  const toast = msg => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1800); };
+  const toast = msg => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2000); };
   const DAY = 86400000;
+  const dayKey = (d=new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
-  const LANGS = {en:'Inglés',es:'Español',fr:'Francés',de:'Alemán',it:'Italiano',pt:'Portugués',ca:'Catalán',nl:'Neerlandés',ja:'Japonés',ko:'Coreano',zh:'Chino',ru:'Ruso',ar:'Árabe',tr:'Turco',pl:'Polaco',sv:'Sueco'};
-  const VOICE = {en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',it:'it-IT',pt:'pt-PT',ca:'ca-ES',nl:'nl-NL',ja:'ja-JP',ko:'ko-KR',zh:'zh-CN',ru:'ru-RU',ar:'ar-SA',tr:'tr-TR',pl:'pl-PL',sv:'sv-SE'};
+  const LANGS = {en:['Inglés','🇬🇧'],es:['Español','🇪🇸'],fr:['Francés','🇫🇷'],de:['Alemán','🇩🇪'],it:['Italiano','🇮🇹'],pt:['Portugués','🇵🇹'],ca:['Catalán','🏳️'],nl:['Neerlandés','🇳🇱'],ja:['Japonés','🇯🇵'],ko:['Coreano','🇰🇷'],zh:['Chino','🇨🇳'],ru:['Ruso','🇷🇺'],ar:['Árabe','🇸🇦'],tr:['Turco','🇹🇷'],pl:['Polaco','🇵🇱'],sv:['Sueco','🇸🇪']};
+  const VOICE = {en:'en-GB',es:'es-ES',fr:'fr-FR',de:'de-DE',it:'it-IT',pt:'pt-PT',ca:'ca-ES',nl:'nl-NL',ja:'ja-JP',ko:'ko-KR',zh:'zh-CN',ru:'ru-RU',ar:'ar-SA',tr:'tr-TR',pl:'pl-PL',sv:'sv-SE'};
+  const LEVELS = {
+    beginner:{name:'Principiante', pct:.10, cls:'d1', desc:'10% de las palabras'},
+    intermediate:{name:'Intermedio', pct:.25, cls:'d2', desc:'25% de las palabras'},
+    advanced:{name:'Avanzado', pct:.50, cls:'d3', desc:'50% de las palabras'},
+    expert:{name:'Experto', pct:1, cls:'d4', desc:'Todas las palabras'}
+  };
+  const MODES = {choice:'Selección', write:'Escritura', karaoke:'Karaoke'};
 
-  // ---------- Estado ----------
-  const settings = Object.assign({src:'en', tgt:'es', online:true, pauseOnClick:true, offset:0, subMode:0, showTrans:true, loop:false, autopause:false, speed:1}, LS.get('settings', {}));
-  let vocab = LS.get('vocab', {});           // key -> {word, tr, ctx, src, ease, interval, reps, due, added}
-  let reviewLog = LS.get('reviewLog', {});   // fecha -> nº
-  let cues = [], tcues = [];
-  let current = -1, mediaKey = null;
-  let pausedForCue = -1;
-  const saveSettings = () => LS.set('settings', settings);
-  const saveVocab = () => { LS.set('vocab', vocab); updateCounts(); };
-
-  // ---------- Pestañas ----------
-  $$('nav button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
-  function showTab(name){
-    $$('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab===name));
-    $$('.tab').forEach(t => t.classList.toggle('active', t.id==='tab-'+name));
-    if(name==='vocab') renderVocab();
-    if(name==='review') startReview();
-    closePopup();
+  // =================== Canciones incluidas (dominio público) ===================
+  const BUILTIN = [
+    {id:'pd-twinkle', title:'Twinkle, Twinkle, Little Star', artist:'Jane Taylor (1806)', lang:'en', level:'Básico', lines:[
+      ['Twinkle, twinkle, little star','Brilla, brilla, estrellita'],['How I wonder what you are!','¡cómo me pregunto qué eres!'],
+      ['Up above the world so high','Allá arriba, tan alto sobre el mundo,'],['Like a diamond in the sky','como un diamante en el cielo.'],
+      ['Twinkle, twinkle, little star','Brilla, brilla, estrellita,'],['How I wonder what you are!','¡cómo me pregunto qué eres!'],
+      ['When the blazing sun is gone','Cuando el sol ardiente se ha ido,'],['When he nothing shines upon','cuando ya no ilumina nada,'],
+      ['Then you show your little light','entonces muestras tu lucecita,'],['Twinkle, twinkle, all the night','brillando, brillando toda la noche.'],
+      ['Twinkle, twinkle, little star','Brilla, brilla, estrellita,'],['How I wonder what you are!','¡cómo me pregunto qué eres!']]},
+    {id:'pd-rowboat', title:'Row, Row, Row Your Boat', artist:'Tradicional', lang:'en', level:'Básico', lines:[
+      ['Row, row, row your boat','Rema, rema, rema tu barca'],['Gently down the stream','suavemente río abajo.'],
+      ['Merrily, merrily, merrily, merrily','Alegremente, alegremente, alegremente,'],['Life is but a dream','la vida no es más que un sueño.'],
+      ['Row, row, row your boat','Rema, rema, rema tu barca'],['Gently down the stream','suavemente río abajo.'],
+      ['Merrily, merrily, merrily, merrily','Alegremente, alegremente, alegremente,'],['Life is but a dream','la vida no es más que un sueño.']]},
+    {id:'pd-saints', title:'When the Saints Go Marching In', artist:'Tradicional', lang:'en', level:'Básico', lines:[
+      ['Oh, when the saints go marching in','Oh, cuando los santos entren desfilando,'],['Oh, when the saints go marching in','oh, cuando los santos entren desfilando,'],
+      ['Oh Lord, I want to be in that number','oh Señor, quiero estar entre ellos'],['When the saints go marching in','cuando los santos entren desfilando.'],
+      ['Oh, when the sun refuse to shine','Oh, cuando el sol se niegue a brillar,'],['Oh, when the sun refuse to shine','oh, cuando el sol se niegue a brillar,'],
+      ['Oh Lord, I want to be in that number','oh Señor, quiero estar entre ellos'],['When the sun refuse to shine','cuando el sol se niegue a brillar.'],
+      ['Oh, when the stars fall from the sky','Oh, cuando las estrellas caigan del cielo,'],['Oh, when the stars fall from the sky','oh, cuando las estrellas caigan del cielo,'],
+      ['Oh Lord, I want to be in that number','oh Señor, quiero estar entre ellos'],['When the stars fall from the sky','cuando las estrellas caigan del cielo.']]},
+    {id:'pd-clementine', title:'Oh My Darling, Clementine', artist:'Tradicional (1884)', lang:'en', level:'Intermedio', lines:[
+      ['In a cavern, in a canyon','En una caverna, en un cañón,'],['Excavating for a mine','excavando para una mina,'],
+      ['Dwelt a miner, forty-niner','vivía un minero, buscador de oro,'],['And his daughter, Clementine','y su hija, Clementine.'],
+      ['Oh my darling, oh my darling','Oh, querida mía, oh, querida mía,'],['Oh my darling, Clementine','oh, querida mía, Clementine,'],
+      ['You are lost and gone forever','estás perdida y te has ido para siempre,'],['Dreadful sorry, Clementine','cuánto lo siento, Clementine.'],
+      ['Light she was and like a fairy','Era ligera, como un hada,'],['And her shoes were number nine','y sus zapatos eran del número nueve;'],
+      ['Herring boxes without topses','cajas de arenques sin tapa'],['Sandals were for Clementine','eran las sandalias de Clementine.'],
+      ['Oh my darling, oh my darling','Oh, querida mía, oh, querida mía,'],['Oh my darling, Clementine','oh, querida mía, Clementine,'],
+      ['You are lost and gone forever','estás perdida y te has ido para siempre,'],['Dreadful sorry, Clementine','cuánto lo siento, Clementine.']]},
+    {id:'pd-susanna', title:'Oh! Susanna', artist:'Stephen Foster (1848)', lang:'en', level:'Intermedio', lines:[
+      ['I come from Alabama with a banjo on my knee','Vengo de Alabama con un banjo en la rodilla,'],["I'm going to Louisiana, my true love for to see",'voy a Luisiana a ver a mi verdadero amor.'],
+      ['It rained all night the day I left, the weather it was dry','Llovió toda la noche el día que me fui, y el tiempo era seco;'],["The sun so hot I froze to death, Susanna, don't you cry",'el sol tan caliente que me morí de frío; Susanna, no llores.'],
+      ["Oh, Susanna, oh don't you cry for me",'Oh, Susanna, no llores por mí,'],['For I come from Alabama with a banjo on my knee','que vengo de Alabama con un banjo en la rodilla.']]},
+    {id:'pd-range', title:'Home on the Range', artist:'Brewster Higley (1872)', lang:'en', level:'Intermedio', lines:[
+      ['Oh, give me a home where the buffalo roam','Oh, dame un hogar donde vaguen los búfalos,'],['Where the deer and the antelope play','donde jueguen el ciervo y el antílope,'],
+      ['Where seldom is heard a discouraging word','donde rara vez se oye una palabra desalentadora'],['And the skies are not cloudy all day','y el cielo no está nublado en todo el día.'],
+      ['Home, home on the range','Hogar, hogar en la pradera,'],['Where the deer and the antelope play','donde juegan el ciervo y el antílope,'],
+      ['Where seldom is heard a discouraging word','donde rara vez se oye una palabra desalentadora'],['And the skies are not cloudy all day','y el cielo no está nublado en todo el día.']]},
+    {id:'pd-grace', title:'Amazing Grace', artist:'John Newton (1779)', lang:'en', level:'Avanzado', lines:[
+      ['Amazing grace, how sweet the sound','Gracia asombrosa, qué dulce el sonido'],['That saved a wretch like me','que salvó a un desdichado como yo.'],
+      ['I once was lost, but now am found','Una vez estuve perdido, pero ahora me he encontrado;'],['Was blind, but now I see','estaba ciego, pero ahora veo.'],
+      ["'Twas grace that taught my heart to fear",'Fue la gracia la que enseñó a mi corazón a temer,'],['And grace my fears relieved','y la gracia alivió mis miedos;'],
+      ['How precious did that grace appear','qué preciosa pareció esa gracia'],['The hour I first believed','la hora en que creí por primera vez.'],
+      ['Through many dangers, toils and snares','A través de muchos peligros, fatigas y trampas'],['I have already come','ya he pasado;'],
+      ["'Tis grace hath brought me safe thus far",'es la gracia la que me ha traído a salvo hasta aquí,'],['And grace will lead me home','y la gracia me llevará a casa.']]},
+    {id:'pd-frere', title:'Frère Jacques', artist:'Tradicional', lang:'fr', level:'Básico', lines:[
+      ['Frère Jacques, frère Jacques','Hermano Jacobo, hermano Jacobo,'],['Dormez-vous ? Dormez-vous ?','¿duermes? ¿duermes?'],
+      ['Sonnez les matines, sonnez les matines','Toca las campanas, toca las campanas,'],['Ding, dang, dong. Ding, dang, dong.','din, don, dan. Din, don, dan.'],
+      ['Frère Jacques, frère Jacques','Hermano Jacobo, hermano Jacobo,'],['Dormez-vous ? Dormez-vous ?','¿duermes? ¿duermes?'],
+      ['Sonnez les matines, sonnez les matines','Toca las campanas, toca las campanas,'],['Ding, dang, dong. Ding, dang, dong.','din, don, dan. Din, don, dan.']]},
+    {id:'pd-clairlune', title:'Au clair de la lune', artist:'Tradicional', lang:'fr', level:'Intermedio', lines:[
+      ['Au clair de la lune','A la luz de la luna,'],['Mon ami Pierrot','mi amigo Pierrot,'],['Prête-moi ta plume','préstame tu pluma'],['Pour écrire un mot','para escribir una palabra.'],
+      ['Ma chandelle est morte','Mi vela se ha apagado,'],["Je n'ai plus de feu",'ya no tengo fuego.'],['Ouvre-moi ta porte','Ábreme tu puerta'],["Pour l'amour de Dieu",'por el amor de Dios.']]},
+    {id:'pd-cielito', title:'Cielito lindo', artist:'Quirino Mendoza (1882)', lang:'es', level:'Intermedio', lines:[
+      ['De la Sierra Morena, cielito lindo, vienen bajando','From the Sierra Morena, lovely darling, they come down'],['Un par de ojitos negros, cielito lindo, de contrabando','a pair of little black eyes, lovely darling, smuggled in.'],
+      ['Ay, ay, ay, ay, canta y no llores','Ay, ay, ay, ay, sing and don\'t cry,'],['Porque cantando se alegran, cielito lindo, los corazones','because singing, lovely darling, makes hearts glad.'],
+      ['Ese lunar que tienes, cielito lindo, junto a la boca','That beauty mark you have, lovely darling, next to your mouth,'],['No se lo des a nadie, cielito lindo, que a mí me toca','don\'t give it to anyone, lovely darling, it belongs to me.'],
+      ['Ay, ay, ay, ay, canta y no llores','Ay, ay, ay, ay, sing and don\'t cry,'],['Porque cantando se alegran, cielito lindo, los corazones','because singing, lovely darling, makes hearts glad.']]}
+  ];
+  function buildCues(lines){
+    let t = 1.5; const cues=[], tcues=[];
+    for(const [a,b] of lines){
+      const d = Math.max(2.8, a.split(/\s+/).length*0.5 + 1.5);
+      cues.push({start:t, end:t+d-0.15, text:a});
+      if(b) tcues.push({start:t, end:t+d-0.15, text:b});
+      t += d;
+    }
+    return {cues, tcues};
   }
 
-  // ---------- Parser de subtítulos ----------
-  function toSec(ts){
-    const p = ts.trim().replace(',', '.').split(':').map(Number);
-    return p.length===3 ? p[0]*3600+p[1]*60+p[2] : p[0]*60+p[1];
+  // =================== Estado ===================
+  const settings = Object.assign({src:'en', tgt:'es', chosen:false, online:true, pauseOnClick:true, offset:0, subMode:0, showTrans:true, loop:false, autopause:false, speed:1}, LS.get('settings', {}));
+  let vocab = LS.get('vocab', {});
+  let reviewLog = LS.get('reviewLog', {});
+  let songs = LS.get('songs', []);
+  let stats = Object.assign({points:0, days:{}, played:{}, right:0, total:0}, LS.get('stats', {}));
+  const removedBuiltins = new Set(LS.get('removedBuiltins', []));
+  for(const b of BUILTIN){
+    if(removedBuiltins.has(b.id) || songs.some(s=>s.id===b.id)) continue;
+    const {cues, tcues} = buildCues(b.lines);
+    songs.push({id:b.id, title:b.title, artist:b.artist, lang:b.lang, level:b.level, yt:null, cues, tcues, builtin:true, best:{}, added:0});
+  }
+  const saveSettings = () => LS.set('settings', settings);
+  const saveVocab = () => { LS.set('vocab', vocab); updateCounts(); };
+  const saveSongs = () => LS.set('songs', songs);
+  const saveStats = () => { LS.set('stats', stats); updateCounts(); };
+  saveSongs();
+  function activity(points=0){ stats.days[dayKey()] = true; stats.points += points; saveStats(); }
+  function streak(){
+    let n=0; const d=new Date();
+    if(!stats.days[dayKey(d)]) d.setDate(d.getDate()-1);
+    while(stats.days[dayKey(d)]){ n++; d.setDate(d.getDate()-1); }
+    return n;
+  }
+  const levelOf = p => { const n = Math.floor(Math.sqrt(p/60))+1; const lo=(n-1)**2*60, hi=n**2*60; return {n, frac:(p-lo)/(hi-lo)}; };
+
+  // =================== Navegación ===================
+  let screen = 'home';
+  $$('nav button').forEach(b => b.onclick = () => show(b.dataset.screen));
+  $('#logo').onclick = () => show('home');
+  function show(name){
+    if(screen==='game' && name!=='game'){ P.pause(); speechSynthesis?.cancel(); }
+    screen = name;
+    document.body.classList.toggle('in-game', name==='game');
+    $$('nav button').forEach(b => b.classList.toggle('active', b.dataset.screen===name));
+    $$('.screen').forEach(s => s.classList.toggle('active', s.id==='s-'+name));
+    closePopup();
+    if(name==='home') renderHome();
+    if(name==='vocab') renderVocab();
+    if(name==='review') startReview();
+    if(name==='progress') renderProgress();
+    window.scrollTo(0,0);
+  }
+
+  // =================== Parser de letras ===================
+  function toSec(ts){ const p = ts.trim().replace(',', '.').split(':').map(Number); return p.length===3 ? p[0]*3600+p[1]*60+p[2] : p[0]*60+p[1]; }
+  const clean = t => t.replace(/<[^>]+>/g,'').replace(/\{[^}]+\}/g,'').replace(/\s+/g,' ').trim();
+  function parseLRC(text){
+    const out = [];
+    for(const line of text.split('\n')){
+      const stamps = [...line.matchAll(/\[(\d{1,3}):(\d{1,2}(?:[.:]\d{1,3})?)\]/g)];
+      if(!stamps.length) continue;
+      const txt = clean(line.replace(/\[[^\]]*\]/g,''));
+      for(const s of stamps) out.push({start:+s[1]*60 + parseFloat(s[2].replace(':','.')), text:txt});
+    }
+    out.sort((a,b)=>a.start-b.start);
+    out.forEach((c,i)=> c.end = i<out.length-1 ? Math.min(out[i+1].start, c.start+12) : c.start+6);
+    return out.filter(c=>c.text);
   }
   function parseSubs(text){
     text = text.replace(/\r/g,'').replace(/^﻿/,'');
+    if(/^\s*\[\d{1,3}:\d{1,2}/m.test(text) && !/-->/.test(text)) return parseLRC(text);
     const out = [];
-    const blocks = text.split(/\n{2,}/);
     const re = /((?:\d+:)?\d{1,2}:\d{2}[.,]\d{1,3})\s*-->\s*((?:\d+:)?\d{1,2}:\d{2}[.,]\d{1,3})/;
-    for(const b of blocks){
-      const lines = b.split('\n');
-      const i = lines.findIndex(l => re.test(l));
+    for(const b of text.split(/\n{2,}/)){
+      const lines = b.split('\n'); const i = lines.findIndex(l => re.test(l));
       if(i<0) continue;
-      const m = lines[i].match(re);
-      const txt = lines.slice(i+1).join(' ')
-        .replace(/<[^>]+>/g,'').replace(/\{[^}]+\}/g,'').replace(/\s+/g,' ').trim();
-      if(!txt) continue;
-      out.push({start:toSec(m[1]), end:toSec(m[2]), text:txt});
+      const m = lines[i].match(re); const txt = clean(lines.slice(i+1).join(' '));
+      if(txt) out.push({start:toSec(m[1]), end:toSec(m[2]), text:txt});
     }
     out.sort((a,b)=>a.start-b.start);
-    // Fusiona duplicados consecutivos (típico de subtítulos automáticos)
     return out.filter((c,i)=> i===0 || c.text!==out[i-1].text || c.start>out[i-1].end+0.5);
   }
+  const plainLines = text => text.replace(/\r/g,'').split('\n').map(clean).filter(l => l && !/^\[.*\]$/.test(l));
   function transFor(c){
-    if(!tcues.length) return '';
-    const mid = (c.start+c.end)/2;
+    if(!c || !tcues.length) return '';
     let best = null, bestOv = 0;
     for(const t of tcues){
       if(t.end < c.start-1) continue;
@@ -314,235 +607,401 @@
       const ov = Math.min(t.end,c.end)-Math.max(t.start,c.start);
       if(ov>bestOv){ bestOv=ov; best=t; }
     }
-    if(!best){ best = tcues.reduce((a,t)=>Math.abs((t.start+t.end)/2-mid)<Math.abs((a.start+a.end)/2-mid)?t:a, tcues[0]); if(Math.abs((best.start+best.end)/2-mid)>3) return ''; }
-    return best.text;
+    return best ? best.text : '';
   }
 
-  // ---------- Reproductor (abstracción vídeo local / YouTube) ----------
+  // =================== Reproductor ===================
   const video = $('#video');
   let yt = null, ytReady = false, mode = null;
+  let cues = [], tcues = [], current = -1, pausedForCue = -1;
+  const localMedia = {};
+  const clock = {t:0, from:0, paused:true, rate:1, now(){ return this.paused ? this.t : this.t + (performance.now()-this.from)/1000*this.rate; }};
   const P = {
-    time(){ return mode==='yt' ? (ytReady ? yt.getCurrentTime() : 0) : video.currentTime; },
-    seek(t){ t=Math.max(0,t); if(mode==='yt'){ ytReady && yt.seekTo(t, true); } else video.currentTime=t; },
-    play(){ mode==='yt' ? ytReady && yt.playVideo() : video.play(); },
-    pause(){ mode==='yt' ? ytReady && yt.pauseVideo() : video.pause(); },
-    paused(){ return mode==='yt' ? !ytReady || yt.getPlayerState()!==1 : video.paused; },
-    rate(r){ mode==='yt' ? ytReady && yt.setPlaybackRate(r) : (video.playbackRate=r); },
+    time(){ return mode==='clock' ? clock.now() : mode==='yt' ? (ytReady ? yt.getCurrentTime() : 0) : video.currentTime||0; },
+    seek(t){ t=Math.max(0,t); if(mode==='clock'){ clock.t=t; clock.from=performance.now(); speechSynthesis?.cancel(); } else if(mode==='yt'){ ytReady && yt.seekTo(t, true); } else video.currentTime=t; },
+    play(){ if(mode==='clock'){ if(clock.paused){ clock.from=performance.now(); clock.paused=false; if(cues[current]) speak(cues[current].text); } } else if(mode==='yt'){ ytReady && yt.playVideo(); } else video.play().catch(()=>{}); },
+    pause(){ if(mode==='clock'){ if(!clock.paused){ clock.t=clock.now(); clock.paused=true; } speechSynthesis?.cancel(); } else if(mode==='yt'){ ytReady && yt.pauseVideo(); } else video.pause(); },
+    paused(){ return mode==='clock' ? clock.paused : mode==='yt' ? !ytReady || [2,5,-1,0].includes(yt.getPlayerState()) : video.paused; },
+    rate(r){ if(mode==='clock'){ clock.t=clock.now(); clock.from=performance.now(); clock.rate=r; } else if(mode==='yt'){ ytReady && yt.setPlaybackRate(r); } else video.playbackRate=r; },
     toggle(){ this.paused() ? this.play() : this.pause(); }
   };
-
-  $('#video-file').onchange = e => {
-    const f = e.target.files[0]; if(!f) return;
-    destroyYT();
-    mode='local'; video.src = URL.createObjectURL(f); video.style.display='block'; $('#empty').style.display='none';
-    setMedia('file:'+f.name);
-    P.rate(settings.speed);
-    toast('Vídeo cargado: '+f.name);
-  };
-
-  function ytId(url){
-    const m = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/) || url.match(/^([\w-]{11})$/);
-    return m && m[1];
-  }
+  function ytId(url){ const m = (url||'').match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/) || (url||'').match(/^([\w-]{11})$/); return m && m[1]; }
   function loadYTApi(){
     return new Promise(res => {
       if(window.YT && YT.Player) return res();
-      window.onYouTubeIframeAPIReady = res;
-      const s = document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s);
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => { prev && prev(); res(); };
+      if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){ const s = document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s); }
     });
   }
-  function destroyYT(){ if(yt){ yt.destroy(); yt=null; ytReady=false; const d=document.createElement('div'); d.id='yt-player'; d.style.display='none'; $('#video-wrap').prepend(d);} }
-  $('#yt-load').onclick = async () => {
-    const id = ytId($('#yt-url').value.trim());
-    if(!id) return toast('Enlace de YouTube no válido');
-    video.pause(); video.removeAttribute('src'); video.style.display='none';
-    destroyYT();
-    $('#empty').style.display='none';
-    $('#yt-player').style.display='block';
-    mode='yt';
-    await loadYTApi();
-    yt = new YT.Player('yt-player', { videoId:id, playerVars:{rel:0, modestbranding:1, cc_load_policy:0},
-      events:{ onReady:()=>{ ytReady=true; P.rate(settings.speed); } } });
-    setMedia('yt:'+id);
-    if(!cues.length) toast('Ahora carga un archivo de subtítulos para este vídeo');
-  };
-  $('#yt-url').onkeydown = e => { if(e.key==='Enter') $('#yt-load').click(); };
-
-  // Guarda/recupera subtítulos por vídeo
-  function setMedia(key){
-    mediaKey = key;
-    const saved = LS.get('subs', {})[key];
-    if(saved){ cues = saved.cues||[]; tcues = saved.tcues||[]; renderLines(); toast('Subtítulos recuperados de la última vez'); }
-    LS.set('lastMedia', key);
+  function resetMedia(){
+    video.pause(); video.removeAttribute('src'); video.load(); video.style.display='none';
+    if(yt){ try{ yt.destroy(); }catch{} yt=null; ytReady=false; }
+    if(!$('#yt-player')){ const d=document.createElement('div'); d.id='yt-player'; $('#video-wrap').prepend(d); }
+    $('#yt-player').style.display='none';
+    $('#clockview').style.display='none';
+    speechSynthesis?.cancel();
+    mode = null;
   }
-  function persistSubs(){
-    const all = LS.get('subs', {});
-    all[mediaKey || 'sin-video'] = {cues, tcues, at:Date.now()};
-    // limita a los 15 últimos vídeos
-    const keys = Object.keys(all).sort((a,b)=>all[b].at-all[a].at);
-    keys.slice(15).forEach(k=>delete all[k]);
-    try{ LS.set('subs', all); }catch{ toast('No hay espacio para guardar los subtítulos'); }
+  async function loadMedia(song, autoplay){
+    resetMedia();
+    if(localMedia[song.id]){
+      mode='local'; video.src = localMedia[song.id]; video.style.display='block'; video.controls=false;
+      video.playbackRate = settings.speed;
+      if(autoplay) video.play().catch(()=>{});
+    } else if(song.yt){
+      mode='yt'; $('#yt-player').style.display='block';
+      await loadYTApi();
+      yt = new YT.Player('yt-player', { videoId:song.yt, playerVars:{rel:0, modestbranding:1, cc_load_policy:0, playsinline:1, iv_load_policy:3},
+        events:{ onReady:()=>{ ytReady=true; P.rate(settings.speed); if(autoplay) P.play(); }, onStateChange:e=>{ if(e.data===0) onMediaEnded(); } } });
+    } else {
+      mode='clock'; clock.t=0; clock.paused=true; clock.rate=settings.speed;
+      const cv = $('#clockview'); cv.style.display='flex';
+      cv.innerHTML = `<div class="big">🎤</div><div class="t">${esc(song.title)}</div><div>Sin vídeo: cada línea se lee en voz alta.<br>Añade un vídeo de YouTube desde la ficha de la canción para escuchar la música.</div>`;
+      if(autoplay) setTimeout(()=>P.play(), 400);
+    }
   }
-  const readFile = f => new Promise(r => { const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsText(f); });
-  $('#sub-file').onchange = async e => {
-    const f=e.target.files[0]; if(!f) return;
-    cues = parseSubs(await readFile(f));
-    if(!cues.length) return toast('No se encontraron subtítulos en el archivo');
-    current=-1; persistSubs(); renderLines(); toast(cues.length+' frases cargadas'); e.target.value='';
-  };
-  $('#trans-file').onchange = async e => {
-    const f=e.target.files[0]; if(!f) return;
-    tcues = parseSubs(await readFile(f));
-    persistSubs(); renderLines(); current=-1; toast('Traducción cargada'); e.target.value='';
-  };
+  video.addEventListener('ended', () => onMediaEnded());
 
-  // ---------- Transcripción ----------
-  function renderLines(){
-    const q = $('#line-search').value.trim().toLowerCase();
-    const box = $('#lines');
-    if(!cues.length){ box.innerHTML='<div class="muted">Aún no hay subtítulos cargados.</div>'; return; }
+  // =================== Partida ===================
+  const G = {mode:null, song:null, level:null, blanks:[], map:{}, cur:-1, score:0, hits:0, misses:0, combo:0, fails:0, waiting:false, ended:false, opts:null, optsFor:-1, parts:[]};
+  async function startGame(song, gmode, level){
+    Object.assign(G, {mode:gmode, song, level, blanks:[], map:{}, cur:-1, score:0, hits:0, misses:0, combo:0, fails:0, waiting:false, ended:false, opts:null, optsFor:-1});
+    cues = gmode==='sync' ? song.cues : song.cues.map(c=>({...c}));
+    tcues = song.tcues || [];
+    current = -1; pausedForCue = -1;
+    G.parts = cues.map(c=>c.text.split(WORD_RE));
+    if(gmode==='choice' || gmode==='write') setupBlanks(LEVELS[level].pct);
+    $('#g-title').textContent = `${song.title} · ${gmode==='sync'?'Sincronizar':MODES[gmode]}${level?' · '+LEVELS[level].name:''}`;
+    $('#kara-tools').style.display = gmode==='karaoke' ? 'contents' : 'none';
+    show('game');
+    syncButtons();
+    G.cur = nextBlank(0);
+    renderLyrics();
+    renderAnswers(); updateHud();
+    if(gmode==='sync'){ await loadMedia(song, false); P.seek(0); renderSync(); toast('Pulsa ▶ y marca cada línea cuando empiece a cantarse'); return; }
+    await loadMedia(song, true);
+    setCurrent(0);
+  }
+  function setupBlanks(pct){
+    const elig = [];
+    G.parts.forEach((parts,i)=>parts.forEach((p,k)=>{ if(k%2===1 && /\p{L}/u.test(p)) elig.push({line:i,k,word:p}); }));
+    let pool = elig;
+    if(pct<1){ const longer = elig.filter(e=>e.word.replace(/['’]/g,'').length>=3); if(longer.length >= Math.ceil(elig.length*pct)) pool = longer; }
+    const n = Math.max(1, Math.round(elig.length*pct));
+    G.blanks = shuffle(pool.slice()).slice(0, n).sort((a,b)=>a.line-b.line || a.k-b.k).map(b=>({...b, state:null}));
+    G.blanks.forEach((b,i)=> G.map[b.line+':'+b.k] = i);
+  }
+  function nextBlank(t){
+    let first = -1;
+    for(let i=0;i<G.blanks.length;i++){
+      const b=G.blanks[i]; if(b.state) continue;
+      if(first<0) first=i;
+      if(cues[b.line].end > t-0.3) return i;
+    }
+    return first;
+  }
+  function blankHTML(bi){
+    const b = G.blanks[bi];
+    if(b.state) return `<span class="w blank ${b.state}" id="b${bi}" data-w="${esc(b.word)}">${esc(b.word)}</span>`;
+    return `<span class="blank${bi===G.cur?' cur':''}" id="b${bi}" style="width:${(Math.max(2,b.word.length)*0.55+0.5).toFixed(2)}em"></span>`;
+  }
+  function updateBlank(bi){ const el = document.getElementById('b'+bi); if(el && G.blanks[bi]) el.outerHTML = blankHTML(bi); }
+  function wordSpan(p){ const saved = vocab[norm(p)+'|'+(G.song?.lang||settings.src)]; return `<span class="w${saved?' saved':''}" data-w="${esc(p)}">${esc(p)}</span>`; }
+  function renderLyrics(){
+    const box = $('#lyrics');
+    if(!cues.length){ box.innerHTML = '<div class="muted">Esta canción no tiene letra.</div>'; return; }
+    const showTr = G.mode==='karaoke' && settings.showTrans;
     box.innerHTML = cues.map((c,i)=>{
-      const tr = transFor(c);
-      if(q && !c.text.toLowerCase().includes(q) && !tr.toLowerCase().includes(q)) return '';
-      return `<div class="line${i===current?' active':''}" data-i="${i}"><div class="t">${fmt(c.start)}</div><div>${esc(c.text)}</div>${tr&&settings.showTrans?`<div class="tr">${esc(tr)}</div>`:''}</div>`;
+      const inner = G.parts[i].map((p,k)=>{
+        if(k%2===0) return esc(p);
+        const bi = G.map[i+':'+k];
+        return bi!==undefined ? blankHTML(bi) : wordSpan(p);
+      }).join('');
+      const tr = showTr ? transFor(c) : '';
+      return `<div class="lyr${i===current?' active':''}" data-i="${i}"><div class="lt">${inner}</div>${tr?`<div class="ltr">${esc(tr)}</div>`:''}</div>`;
     }).join('');
+    box.classList.toggle('blur', G.mode==='karaoke' && settings.subMode===1);
+    box.classList.toggle('hide', G.mode==='karaoke' && settings.subMode===2);
+    centerLine(false);
   }
-  $('#line-search').oninput = renderLines;
-  $('#lines').onclick = e => {
-    const l = e.target.closest('.line'); if(!l) return;
-    goTo(+l.dataset.i, true);
-  };
-
-  function goTo(i, play){
-    if(i<0 || i>=cues.length) return;
-    pausedForCue = -1;
-    P.seek(cues[i].start - settings.offset + 0.01);
-    setCurrent(i);
-    if(play) P.play();
+  function centerLine(smooth=true){
+    const box = $('#lyrics'); const el = box.querySelector(`.lyr[data-i="${Math.max(0,current)}"]`);
+    if(!el) return;
+    box.scrollTo({top: el.offsetTop - box.clientHeight/2 + el.clientHeight/2, behavior: smooth?'smooth':'auto'});
   }
-
-  function renderSub(){
-    const c = cues[current];
-    if(!c){ $('#sub-main').innerHTML='<span class="muted">—</span>'; $('#sub-trans').textContent=''; return; }
-    $('#sub-main').innerHTML = c.text.split(/([\p{L}\p{M}\p{N}'’]+)/u).map((part,i)=>{
-      if(i%2===0) return esc(part);
-      const saved = vocab[norm(part)+'|'+settings.src];
-      return `<span class="w${saved?' saved':''}" data-w="${esc(part)}">${esc(part)}</span>`;
-    }).join('');
-    $('#sub-trans').textContent = transFor(c);
-  }
-  function setCurrent(i){
-    if(i===current) return;
+  function setCurrent(i, force){
+    if(i===current && !force) return;
     current = i;
-    renderSub();
-    $$('.line.active').forEach(l=>l.classList.remove('active'));
-    const el = $(`.line[data-i="${i}"]`);
-    if(el){ el.classList.add('active'); el.scrollIntoView({block:'center', behavior:'smooth'}); }
-    $('#info').textContent = cues.length ? `Frase ${i+1} / ${cues.length}` : '';
+    $$('#lyrics .lyr').forEach(l => { const n=+l.dataset.i; l.classList.toggle('active', n===i); l.classList.toggle('past', n<i); });
+    centerLine();
+    if(mode==='clock' && !P.paused() && cues[i]) speak(cues[i].text, G.song?.lang);
   }
-  function cueAt(t){
-    // búsqueda binaria de la última frase que empezó
-    let lo=0, hi=cues.length-1, ans=-1;
-    while(lo<=hi){ const m=(lo+hi)>>1; if(cues[m].start<=t){ ans=m; lo=m+1; } else hi=m-1; }
-    return ans;
+  function cueAt(t){ let lo=0, hi=cues.length-1, ans=-1; while(lo<=hi){ const m=(lo+hi)>>1; if(cues[m].start<=t){ ans=m; lo=m+1; } else hi=m-1; } return ans; }
+  function setCur(n){
+    const old = G.cur; G.cur = n;
+    if(old>=0 && old!==n) updateBlank(old);
+    if(n>=0) updateBlank(n);
+    renderAnswers();
   }
+  const isGame = () => G.mode==='choice' || G.mode==='write';
 
-  // Bucle principal: sincroniza subtítulos, bucle y auto-pausa
-  setInterval(() => {
-    if(!mode || !cues.length) return;
+  // Respuestas
+  function distractors(answer){
+    const a = simp(answer);
+    const near = new Set(), all = new Set();
+    const bl = G.blanks[G.cur]?.line ?? 0;
+    G.parts.forEach((parts,i)=>parts.forEach((p,k)=>{
+      if(k%2!==1 || !/\p{L}/u.test(p) || simp(p)===a) return;
+      const w = p.length>1 && p===p.toUpperCase() ? p : (i===bl && k===1 ? p : p);
+      (Math.abs(i-bl)<=4 ? near : all).add(w.replace(/^./, ch=>answer[0]===answer[0].toUpperCase()?ch.toUpperCase():ch.toLowerCase()));
+    }));
+    const uniq = arr => { const seen=new Set(); return arr.filter(w=>{ const s=simp(w); if(seen.has(s)||s===a) return false; seen.add(s); return true; }); };
+    let pick = uniq(shuffle([...near]));
+    if(pick.length<3) pick = uniq([...pick, ...shuffle([...all])]);
+    const extra = ['the','and','you','love','time','day','night','heart','home','light','away','never'];
+    if(pick.length<3) pick = uniq([...pick, ...shuffle(extra)]);
+    return pick.slice(0,3);
+  }
+  function renderAnswers(){
+    const box = $('#answers');
+    if(G.mode==='sync') return renderSync();
+    if(G.mode==='karaoke'){ box.innerHTML = `<div class="ans-msg">Pulsa cualquier palabra para ver su traducción y guardarla · Haz clic en una línea para saltar a ella</div>`; return; }
+    if(!G.blanks.length){ box.innerHTML = ''; return; }
+    if(G.cur<0){
+      box.innerHTML = `<div class="ans-msg">✨ ¡Todos los huecos completados!</div><div style="text-align:center"><button class="primary" id="see-res">Ver resultados</button></div>`;
+      $('#see-res').onclick = showResults; return;
+    }
+    const b = G.blanks[G.cur];
+    if(G.mode==='choice'){
+      if(G.optsFor!==G.cur){ G.opts = shuffle([b.word, ...distractors(b.word)]); G.optsFor = G.cur; }
+      box.innerHTML = `<div class="opts">${G.opts.map((o,n)=>`<button data-o="${esc(o)}"><small>${n+1}</small>${esc(o)}</button>`).join('')}</div>`;
+      $$('#answers .opts button').forEach(btn => btn.onclick = () => answer(btn.dataset.o, btn));
+    } else {
+      const keep = $('#w-input')?.value || '';
+      box.innerHTML = `<div class="write"><input type="text" id="w-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe la palabra (${b.word.length} letras)"><button class="primary" id="w-ok">OK</button><button id="w-hint" title="Pista">💡</button><button id="w-skip" title="Saltar">⏭</button></div>`;
+      const inp = $('#w-input'); inp.value = G.fails ? keep : '';
+      inp.onkeydown = e => { e.stopPropagation(); if(e.key==='Enter') answer(inp.value, inp); if(e.key==='Escape') inp.blur(); };
+      $('#w-ok').onclick = () => answer(inp.value, inp);
+      $('#w-hint').onclick = () => { G.fails = Math.max(G.fails,1); const h=(+inp.dataset.h||0)+1; inp.dataset.h=h; inp.value = b.word.slice(0, Math.min(b.word.length-1, h)); inp.focus(); };
+      $('#w-skip').onclick = () => answer('', inp, true);
+      inp.focus({preventScroll:true});
+    }
+  }
+  function floatPts(el, txt, color){
+    const r = el.getBoundingClientRect(); const f = document.createElement('div');
+    f.className='floatpts'; f.textContent=txt; f.style.color=color; f.style.left=(r.left+r.width/2-20)+'px'; f.style.top=(r.top-10)+'px';
+    document.body.appendChild(f); requestAnimationFrame(()=>{ f.style.transform='translateY(-50px)'; f.style.opacity='0'; });
+    setTimeout(()=>f.remove(), 900);
+  }
+  function answer(val, el, giveUp){
+    const bi = G.cur, b = G.blanks[bi]; if(!b || b.state) return;
+    if(!giveUp && simp(val)===simp(b.word)){
+      const mult = 1 + Math.min(3, Math.floor(G.combo/5));
+      const pts = (G.fails?5:10)*mult;
+      G.score += pts; G.combo++; G.hits++; b.state = G.fails ? 'late' : 'ok';
+      stats.right++; stats.total++; activity(pts);
+      if(el) { el.classList.add('good'); floatPts(el, '+'+pts, 'var(--ok)'); }
+    } else {
+      if(!giveUp && !val.trim()) return;
+      G.misses++; G.combo=0; G.fails++; stats.total++; saveStats();
+      if(el){ el.classList.add(el.tagName==='BUTTON'?'bad':'shake'); el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'), 500); }
+      const limit = G.mode==='choice' ? 2 : 3;
+      if(!giveUp && G.fails < limit){ updateHud(); if(el?.tagName==='BUTTON') el.disabled = true; return; }
+      b.state = 'miss'; toast('Era: '+b.word);
+    }
+    G.fails = 0; G.opts = null; G.optsFor = -1;
+    updateBlank(bi);
     const t = P.time() + settings.offset;
+    const n = nextBlank(t);
+    setTimeout(()=>{
+      setCur(n);
+      if(G.waiting && (n<0 || G.blanks[n].line !== b.line)){ G.waiting=false; pausedForCue=-1; P.play(); }
+    }, b.state==='miss' ? 700 : 250);
+    updateHud();
+    if(G.blanks.every(x=>x.state)){ stats.played[G.song.id]=true; saveStats(); }
+  }
+  function updateHud(){
+    $('#g-score').textContent = G.score;
+    $('#g-hits').textContent = '✓ '+G.hits;
+    $('#g-miss').textContent = '✗ '+G.misses;
+    $('#g-combo').textContent = '×'+(1+Math.min(3, Math.floor(G.combo/5)));
+    const done = G.blanks.filter(b=>b.state).length;
+    $('#g-bar').style.width = isGame() && G.blanks.length ? (done/G.blanks.length*100)+'%' : '0';
+  }
+  function starsHTML(n){ return [1,2,3].map(i=>`<span class="${i<=n?'':'off'}">★</span>`).join(''); }
+  function showResults(){
+    if(!isGame() || G.ended) return;
+    G.ended = true; P.pause();
+    const val = G.blanks.reduce((a,b)=>a+(b.state==='ok'?1:b.state==='late'?.5:0),0);
+    const pct = Math.round(val/G.blanks.length*100);
+    const stars = pct>=90?3:pct>=70?2:pct>=40?1:0;
+    const key = G.mode+':'+G.level;
+    G.song.best = G.song.best || {};
+    const prev = G.song.best[key];
+    const record = !prev || G.score > prev.score;
+    if(record) G.song.best[key] = {stars:Math.max(stars, prev?.stars||0), score:G.score, pct};
+    else prev.stars = Math.max(prev.stars, stars);
+    stats.played[G.song.id] = true; saveStats(); saveSongs();
+    dialog(`<div class="st">${starsHTML(stars)}</div>
+      <div class="sc">${G.score}</div><div class="muted">puntos${record&&prev?' · ¡nuevo récord!':''}</div>
+      <div class="row"><span style="color:var(--ok)">✓ ${G.hits} aciertos</span><span style="color:var(--bad)">✗ ${G.misses} fallos</span><span>${pct}%</span></div>
+      <div class="btns"><button class="primary" data-a="again">Jugar otra vez</button><button data-a="song">Cambiar modo o dificultad</button><button data-a="home">Volver al inicio</button></div>`,
+      a => { if(a==='again') startGame(G.song, G.mode, G.level); if(a==='song') openSong(G.song); if(a==='home') show('home'); });
+  }
+  function onMediaEnded(){ if(isGame()) showResults(); }
+  function dialog(html, cb){
+    $('#dlg-body').innerHTML = html; $('#dlg').classList.add('show');
+    $$('#dlg-body [data-a]').forEach(b => b.onclick = () => { $('#dlg').classList.remove('show'); cb && cb(b.dataset.a); });
+  }
+  const dlgOpen = () => $('#dlg').classList.contains('show');
+  function exitGame(){
+    if(G.mode==='sync'){ finishSync(false); return; }
+    if(!isGame() || G.ended || !G.blanks.some(b=>b.state)){ openSong(G.song); return; }
+    const wasPlaying = !P.paused(); P.pause();
+    dialog(`<h2>¿Salir de la partida?</h2><p class="muted">Se perderá el progreso de esta partida.</p><div class="btns"><button class="primary" data-a="stay">Seguir jugando</button><button data-a="exit">Salir</button></div>`,
+      a => { if(a==='exit') openSong(G.song); else if(wasPlaying) P.play(); });
+  }
+  $('#g-exit').onclick = exitGame;
+
+  // Bucle principal
+  setInterval(() => {
+    if(screen!=='game' || !mode || !cues.length || G.mode==='sync') return;
+    const t = P.time() + settings.offset;
+    const playing = !P.paused();
+    if(mode==='clock' && playing && t > cues[cues.length-1].end + 0.6){ P.pause(); onMediaEnded(); return; }
+    if(isGame() && G.cur>=0 && playing){
+      const c = cues[G.blanks[G.cur].line];
+      if(t >= c.end - 0.12 && t < c.end + 1.2){ P.pause(); G.waiting = true; setCurrent(G.blanks[G.cur].line); return; }
+      if(t > c.end + 1.2){ const n = nextBlank(t); if(n!==G.cur) setCur(n); }
+    }
     const c = cues[current];
-    if(c && !P.paused()){
+    if(G.mode==='karaoke' && c && playing){
       if(settings.loop && t >= c.end){ P.seek(c.start - settings.offset); return; }
       if(settings.autopause && t >= c.end - 0.05 && pausedForCue!==current){ pausedForCue=current; P.pause(); return; }
     }
-    if(settings.loop && c && t>=c.start-0.3 && t<c.end+0.3) return;
+    if(G.mode==='karaoke' && settings.loop && c && t>=c.start-0.3 && t<c.end+0.3) return;
+    if(G.waiting && !playing) return;
     const i = cueAt(t);
     if(i>=0 && i!==current){
-      if(settings.autopause && pausedForCue===current && current>=0 && t<cues[current].end+0.3) return;
+      if(G.mode==='karaoke' && settings.autopause && pausedForCue===current && t<c.end+0.3) return;
       setCurrent(i);
     }
   }, 50);
 
-  // ---------- Controles ----------
+  function goTo(i, play=true){
+    if(i<0 || i>=cues.length) return;
+    pausedForCue = -1; G.waiting = false;
+    P.seek(cues[i].start - settings.offset + 0.01);
+    setCurrent(i, true);
+    if(isGame()){ const n = nextBlank(cues[i].start); if(n!==G.cur) setCur(n); }
+    if(play) P.play();
+  }
   const step = d => {
     if(!cues.length) return;
-    let i = current<0 ? cueAt(P.time()+settings.offset) : current;
-    if(d<0 && current>=0 && P.time()+settings.offset - cues[current].start > 1.5) d=0; // primero vuelve al inicio de la frase
-    goTo(Math.min(cues.length-1, Math.max(0,i+d)), true);
+    const t = P.time()+settings.offset;
+    let i = current<0 ? Math.max(0,cueAt(t)) : current;
+    if(d<0 && current>=0 && t - cues[current].start > 1.5) d = 0;
+    goTo(Math.min(cues.length-1, Math.max(0,i+d)));
   };
-  $('#b-prev').onclick = () => step(-1);
-  $('#b-next').onclick = () => step(1);
-  $('#b-replay').onclick = () => { if(current>=0) goTo(current, true); };
-  $('#b-play').onclick = () => { pausedForCue = current; P.toggle(); };
-  $('#b-loop').onclick = () => { settings.loop=!settings.loop; saveSettings(); syncButtons(); toast(settings.loop?'Bucle activado':'Bucle desactivado'); };
-  $('#b-autopause').onclick = () => { settings.autopause=!settings.autopause; saveSettings(); syncButtons(); toast(settings.autopause?'Auto-pausa activada':'Auto-pausa desactivada'); };
-  $('#b-hide').onclick = () => { settings.subMode=(settings.subMode+1)%3; saveSettings(); syncButtons(); };
-  $('#b-trans').onclick = () => { settings.showTrans=!settings.showTrans; saveSettings(); syncButtons(); renderLines(); };
-  $('#b-speak').onclick = () => cues[current] && speak(cues[current].text);
-  $('#b-translate-line').onclick = async () => {
+  $('#lyrics').addEventListener('click', e => {
+    const w = e.target.closest('.w');
+    if(w && G.mode!=='sync'){ openPopup(w.dataset.w, cues[+w.closest('.lyr').dataset.i]?.text||'', w.getBoundingClientRect()); return; }
+    const l = e.target.closest('.lyr'); if(l && G.mode!=='sync') goTo(+l.dataset.i);
+  });
+  $('#t-prev').onclick = () => step(-1);
+  $('#t-next').onclick = () => step(1);
+  $('#t-replay').onclick = () => current>=0 && goTo(current);
+  $('#t-play').onclick = () => { pausedForCue = current; if(G.waiting) return toast('Completa el hueco para continuar'); P.toggle(); };
+  $('#t-loop').onclick = () => { settings.loop=!settings.loop; saveSettings(); syncButtons(); };
+  $('#t-auto').onclick = () => { settings.autopause=!settings.autopause; saveSettings(); syncButtons(); };
+  $('#t-trans').onclick = () => { settings.showTrans=!settings.showTrans; saveSettings(); syncButtons(); renderLyrics(); };
+  $('#t-hide').onclick = () => { settings.subMode=(settings.subMode+1)%3; saveSettings(); syncButtons(); renderLyrics(); };
+  $('#t-speak').onclick = () => cues[current] && speak(cues[current].text, G.song?.lang);
+  $('#t-trline').onclick = async () => {
     const c = cues[current]; if(!c) return;
-    $('#sub-trans').textContent = 'Traduciendo…';
-    const r = await translate(c.text);
-    $('#sub-trans').textContent = r || 'No se pudo traducir (¿sin conexión o traducción en línea desactivada?)';
-    if(!settings.showTrans){ settings.showTrans=true; syncButtons(); }
+    const r = await translate(c.text, G.song?.lang);
+    toast(r ? '🌐 '+r : 'No se pudo traducir (¿sin conexión o traducción desactivada?)');
   };
   $('#speed').onchange = e => { settings.speed=+e.target.value; saveSettings(); P.rate(settings.speed); };
   function syncButtons(){
-    $('#b-loop').classList.toggle('on', settings.loop);
-    $('#b-autopause').classList.toggle('on', settings.autopause);
-    $('#b-trans').classList.toggle('on', settings.showTrans);
-    const subs = $('#subs');
-    subs.classList.toggle('blur', settings.subMode===1);
-    subs.classList.toggle('hide', settings.subMode===2);
-    subs.classList.toggle('no-trans', !settings.showTrans);
-    $('#b-hide').textContent = ['👁 Visibles','🌫 Difuminados','🙈 Ocultos'][settings.subMode];
+    $('#t-loop').classList.toggle('on', settings.loop);
+    $('#t-auto').classList.toggle('on', settings.autopause);
+    $('#t-trans').classList.toggle('on', settings.showTrans);
+    $('#t-hide').textContent = ['👁 Letra','🌫 Difuminada','🙈 Oculta'][settings.subMode];
     $('#speed').value = String(settings.speed);
   }
 
-  // ---------- Traducción y voz ----------
+  // =================== Sincronizar letra ===================
+  let syncIdx = 0;
+  function renderSync(){
+    $('#answers').innerHTML = `<div class="ans-msg">Línea ${Math.min(syncIdx+1,cues.length)} de ${cues.length}: pulsa <b>ESPACIO</b> (o el botón) justo cuando empiece a cantarse</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="primary" id="sy-mark" style="font-size:18px;padding:12px 26px">● Marcar línea</button><button id="sy-play">⏯</button><button id="sy-back">↶ Deshacer</button><button id="sy-done">Guardar y terminar</button></div>`;
+    $('#sy-mark').onclick = markSync;
+    $('#sy-play').onclick = () => P.toggle();
+    $('#sy-back').onclick = () => { if(syncIdx){ syncIdx--; P.seek(Math.max(0, cues[syncIdx].start-2)); renderSync(); setCurrent(syncIdx, true); } };
+    $('#sy-done').onclick = () => finishSync(true);
+    setCurrent(syncIdx, true);
+  }
+  function markSync(){
+    if(syncIdx>=cues.length) return;
+    if(P.paused()) P.play();
+    cues[syncIdx].start = Math.max(0, P.time() - 0.15);
+    syncIdx++;
+    if(syncIdx>=cues.length) return finishSync(true);
+    renderSync();
+  }
+  function finishSync(save){
+    if(save){
+      for(let i=Math.max(1,syncIdx);i<cues.length;i++) cues[i].start = Math.max(cues[i].start, cues[i-1].start+0.5);
+      cues.forEach((c,i)=> c.end = i<cues.length-1 ? Math.min(cues[i+1].start, c.start+12) : c.start+6);
+      if(tcues.length===cues.length) tcues.forEach((t,i)=>{ t.start=cues[i].start; t.end=cues[i].end; });
+      G.song.unsynced = false; saveSongs();
+      toast('✓ Letra sincronizada');
+    } else if(G.song.cues === cues){ /* sin guardar: recarga desde almacenamiento */ songs = LS.get('songs', songs); G.song = songs.find(s=>s.id===G.song.id) || G.song; }
+    P.pause(); openSong(G.song);
+  }
+
+  // =================== Traducción y voz ===================
   const trCache = LS.get('trCache', {});
-  async function translate(text){
+  async function translate(text, src=settings.src){
     if(!settings.online) return '';
-    const key = settings.src+'|'+settings.tgt+'|'+text.toLowerCase();
+    const key = src+'|'+settings.tgt+'|'+text.toLowerCase();
     if(trCache[key]) return trCache[key];
     try{
-      const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${settings.src}|${settings.tgt}`);
+      const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${src}|${settings.tgt}`);
       const j = await r.json();
       let out = j?.responseData?.translatedText || '';
-      if(/MYMEMORY WARNING|INVALID/i.test(out)) out='';
+      if(/MYMEMORY WARNING|INVALID|QUERY LENGTH/i.test(out)) out='';
       if(out){ trCache[key]=out; const ks=Object.keys(trCache); if(ks.length>3000) delete trCache[ks[0]]; LS.set('trCache', trCache); }
       return out;
     }catch{ return ''; }
   }
   function speak(text, lang=settings.src){
-    if(!('speechSynthesis' in window)) return toast('Tu navegador no tiene voz');
+    if(!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = VOICE[lang] || lang;
     const v = speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith(lang));
     if(v) u.voice = v;
-    u.rate = 0.9;
+    u.rate = 0.9 * (mode==='clock' ? clock.rate : 1);
     speechSynthesis.speak(u);
   }
 
-  // ---------- Ventana de palabra ----------
-  let popWord = null, popCtx = '';
-  $('#sub-main').onclick = e => {
-    const w = e.target.closest('.w'); if(!w) return;
-    openPopup(w.dataset.w, cues[current]?.text || '', w.getBoundingClientRect());
-  };
+  // =================== Ventana de palabra ===================
+  let popWord = null, popCtx = '', popLang = 'en', popPaused = false;
   async function openPopup(word, ctx, rect){
-    if(settings.pauseOnClick){ pausedForCue=current; P.pause(); }
-    popWord = word; popCtx = ctx;
-    const key = norm(word)+'|'+settings.src;
+    popPaused = false;
+    if(settings.pauseOnClick && !P.paused()){ pausedForCue=current; P.pause(); popPaused = true; }
+    popWord = word; popCtx = ctx; popLang = G.song?.lang || settings.src;
+    const key = norm(word)+'|'+popLang;
     const saved = vocab[key];
     $('#p-word').textContent = word;
     $('#p-input').value = saved ? saved.tr : '';
     $('#p-delete').style.display = saved ? '' : 'none';
     $('#p-save').textContent = saved ? 'Actualizar' : 'Guardar';
     const q = encodeURIComponent(word);
-    $('#p-links').innerHTML = `Diccionarios: <a href="https://www.wordreference.com/${settings.src}${settings.tgt}/${q}" target="_blank">WordReference</a> · <a href="https://translate.google.com/?sl=${settings.src}&tl=${settings.tgt}&text=${q}" target="_blank">Google</a> · <a href="https://www.deepl.com/translator#${settings.src}/${settings.tgt}/${q}" target="_blank">DeepL</a> · <a href="https://www.linguee.com/search?query=${q}" target="_blank">Linguee</a>`;
+    $('#p-links').innerHTML = `Diccionarios: <a href="https://www.wordreference.com/${popLang}${settings.tgt}/${q}" target="_blank">WordReference</a> · <a href="https://translate.google.com/?sl=${popLang}&tl=${settings.tgt}&text=${q}" target="_blank">Google</a> · <a href="https://www.deepl.com/translator#${popLang}/${settings.tgt}/${q}" target="_blank">DeepL</a>`;
     const pop = $('#popup'); pop.style.display='block';
     const pw = pop.offsetWidth, ph = pop.offsetHeight;
     let x = rect.left + rect.width/2 - pw/2, y = rect.top - ph - 10;
@@ -550,48 +1009,189 @@
     pop.style.left = Math.max(10, Math.min(innerWidth-pw-10, x))+'px';
     pop.style.top = Math.max(10, Math.min(innerHeight-ph-10, y))+'px';
     $('#p-auto').textContent = settings.online ? 'Traduciendo…' : '';
-    if(!saved) setTimeout(()=>$('#p-input').focus(), 0);
-    const tr = await translate(word);
+    const tr = await translate(word, popLang);
     if(popWord!==word) return;
     $('#p-auto').textContent = tr || (settings.online ? 'Sin traducción automática' : '');
     if(!saved && tr && !$('#p-input').value) $('#p-input').value = tr;
   }
-  function closePopup(){ $('#popup').style.display='none'; popWord=null; }
+  function closePopup(){ if($('#popup').style.display==='block'){ $('#popup').style.display='none'; if(popPaused && screen==='game' && !G.waiting) P.play(); } popWord=null; popPaused=false; }
   $('#p-close').onclick = closePopup;
-  $('#p-speak').onclick = () => popWord && speak(popWord);
+  $('#p-speak').onclick = () => popWord && speak(popWord, popLang);
   $('#p-save').onclick = () => {
     if(!popWord) return;
-    const key = norm(popWord)+'|'+settings.src;
+    const key = norm(popWord)+'|'+popLang;
     const tr = $('#p-input').value.trim() || $('#p-auto').textContent.replace(/^(Traduciendo…|Sin traducción automática)$/,'');
     const prev = vocab[key];
-    vocab[key] = Object.assign({word:norm(popWord), src:settings.src, tgt:settings.tgt, ease:2.5, interval:0, reps:0, due:Date.now(), added:Date.now(), ctx:popCtx, ctxTr: transFor(cues[current]||{start:0,end:0})}, prev||{}, {tr});
-    saveVocab(); renderSub(); closePopup(); toast(prev?'Palabra actualizada':'Guardada en tu vocabulario');
+    const line = cues.find(c=>c.text===popCtx);
+    vocab[key] = Object.assign({word:norm(popWord), src:popLang, tgt:settings.tgt, ease:2.5, interval:0, reps:0, due:Date.now(), added:Date.now(), ctx:popCtx, ctxTr: transFor(line), song: G.song ? `${G.song.title} — ${G.song.artist}` : ''}, prev||{}, {tr});
+    saveVocab(); if(!prev) activity(2);
+    $$('#lyrics .w').forEach(w => { if(norm(w.dataset.w)===norm(popWord) && !w.classList.contains('blank')) w.classList.add('saved'); });
+    toast(prev?'Palabra actualizada':'Guardada en tu vocabulario'); closePopup();
   };
-  $('#p-input').onkeydown = e => { if(e.key==='Enter') $('#p-save').click(); e.stopPropagation(); };
-  $('#p-delete').onclick = () => { delete vocab[norm(popWord)+'|'+settings.src]; saveVocab(); renderSub(); closePopup(); toast('Palabra eliminada'); };
+  $('#p-input').onkeydown = e => { e.stopPropagation(); if(e.key==='Enter') $('#p-save').click(); if(e.key==='Escape') closePopup(); };
+  $('#p-delete').onclick = () => { delete vocab[norm(popWord)+'|'+popLang]; saveVocab(); $$('#lyrics .w.saved').forEach(w=>{ if(norm(w.dataset.w)===norm(popWord)) w.classList.remove('saved'); }); closePopup(); toast('Palabra eliminada'); };
   document.addEventListener('mousedown', e => { if(!e.target.closest('#popup') && !e.target.closest('.w')) closePopup(); });
 
-  // ---------- Vocabulario ----------
+  // =================== Inicio ===================
+  function cover(s){ return s.yt ? `background-image:url(https://i.ytimg.com/vi/${s.yt}/hqdefault.jpg)` : ''; }
+  function bestStars(s){ return Math.max(0, ...Object.values(s.best||{}).map(b=>b.stars||0)); }
+  function songCard(s){
+    return `<div class="song" data-id="${s.id}">
+      <div class="cover" style="${cover(s)}">${s.yt?'':'🎵'}<span class="lv">${esc(s.level)}</span><span class="fl">${LANGS[s.lang]?.[1]||''}</span></div>
+      <div class="meta"><div class="title">${esc(s.title)}</div><div class="artist">${esc(s.artist||'—')}</div><div class="stars">${starsHTML(bestStars(s))}</div></div></div>`;
+  }
+  function renderHome(){
+    updateCounts();
+    const q = $('#lib-search').value.trim().toLowerCase();
+    const match = s => !q || (s.title+' '+s.artist).toLowerCase().includes(q);
+    const inLang = songs.filter(s => s.lang===settings.src && match(s));
+    const rows = [];
+    const mine = inLang.filter(s=>!s.builtin).sort((a,b)=>b.added-a.added);
+    rows.push(['🎧 Tus canciones', mine, true]);
+    for(const lv of ['Básico','Intermedio','Avanzado']) rows.push([`${lv==='Básico'?'🌱':lv==='Intermedio'?'🔥':'🚀'} Nivel ${lv.toLowerCase()}`, inLang.filter(s=>s.level===lv)]);
+    const others = songs.filter(s => s.lang!==settings.src && match(s));
+    if(others.length) rows.push(['🌍 En otros idiomas', others]);
+    $('#rows').innerHTML = rows.map(([title, list, add]) => {
+      if(!list.length && !add) return '';
+      const cards = (add?`<div class="song add" data-add="1"><div class="cover">＋</div><div class="meta"><div class="title">Añadir canción</div><div class="artist">YouTube + letra</div></div></div>`:'') + list.map(songCard).join('');
+      return `<div class="row-title"><h3>${title}</h3><span class="muted">${list.length}</span></div><div class="carousel">${cards}</div>`;
+    }).join('') || `<div class="empty-row">No hay canciones que coincidan.</div>`;
+  }
+  $('#lib-search').oninput = renderHome;
+  $('#rows').onclick = e => {
+    if(e.target.closest('[data-add]')) return openSongModal();
+    const c = e.target.closest('.song[data-id]'); if(c) openSong(songs.find(s=>s.id===c.dataset.id));
+  };
+  $('#add-song-btn').onclick = () => openSongModal();
+
+  // =================== Ficha de canción ===================
+  let sd = null, pendingMode = null;
+  function openSong(s){
+    if(!s) return;
+    sd = s; pendingMode = null;
+    resetMedia();
+    show('song');
+    $('#sd-bg').className = 'bg'+(s.yt?'':' grad');
+    $('#sd-bg').style.backgroundImage = s.yt ? `url(https://i.ytimg.com/vi/${s.yt}/maxresdefault.jpg), url(https://i.ytimg.com/vi/${s.yt}/hqdefault.jpg)` : '';
+    $('#sd-title').textContent = s.title;
+    $('#sd-artist').textContent = s.artist || '';
+    $('#sd-meta').textContent = `${LANGS[s.lang]?.[1]||''} ${LANGS[s.lang]?.[0]||s.lang} · ${s.level} · ${s.cues.length} líneas${s.builtin?' · Dominio público':''}${localMedia[s.id]?' · 📁 archivo local':''}`;
+    const warn = [];
+    if(s.unsynced) warn.push('⏱ La letra aún no está sincronizada. Añade un vídeo o audio y pulsa <b>Sincronizar letra</b> para que vaya al ritmo de la música.');
+    if(!s.yt && !localMedia[s.id]) warn.push('🎤 Sin vídeo: la letra se leerá en voz alta. Pulsa <b>Vídeo de YouTube</b> para jugar con la música.');
+    $('#sd-warn').innerHTML = warn.map(w=>`<div class="warn-box">${w}</div>`).join('');
+    renderModes();
+  }
+  function renderModes(){
+    const box = $('#sd-modes');
+    const b = sd.best || {};
+    if(!pendingMode){
+      box.innerHTML = `<h3>MODO DE JUEGO</h3>
+        <button class="mode-btn m1" data-m="choice"><span class="ic">🎯</span><span>Selección<small>Elige la palabra que falta entre 4 opciones</small></span></button>
+        <button class="mode-btn m2" data-m="write"><span class="ic">⌨️</span><span>Escritura<small>Escribe las palabras que oyes</small></span></button>
+        <button class="mode-btn m3" data-m="karaoke"><span class="ic">🎤</span><span>Karaoke<small>Letra completa con traducción para estudiar</small></span></button>`;
+    } else {
+      box.innerHTML = `<h3>${MODES[pendingMode].toUpperCase()} · DIFICULTAD</h3>` +
+        Object.entries(LEVELS).map(([k,l])=>{ const r=b[pendingMode+':'+k]; return `<button class="mode-btn ${l.cls}" data-l="${k}"><span>${l.name}<small>${l.desc}</small></span><span class="best">${r?`<span class="stars" style="color:#fff">${starsHTML(r.stars)}</span> ${r.score}`:''}</span></button>`; }).join('') +
+        `<button data-back="1" style="justify-self:center;margin-top:6px">← Cambiar modo</button>`;
+    }
+  }
+  $('#sd-modes').onclick = e => {
+    const m = e.target.closest('[data-m]'), l = e.target.closest('[data-l]');
+    if(e.target.closest('[data-back]')){ pendingMode=null; return renderModes(); }
+    if(m){ if(m.dataset.m==='karaoke') return startGame(sd, 'karaoke'); pendingMode = m.dataset.m; return renderModes(); }
+    if(l) startGame(sd, pendingMode, l.dataset.l);
+  };
+  $('#sd-back').onclick = () => show('home');
+  $('#sd-video').onclick = () => {
+    const url = prompt(`Pega el enlace de YouTube para "${sd.title}".\n\nSi cancelas, se abrirá una búsqueda en YouTube para encontrar uno.`, sd.yt ? 'https://youtu.be/'+sd.yt : '');
+    if(url===null){ window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(`${sd.title} ${sd.builtin?'':sd.artist||''} lyrics`), '_blank'); return; }
+    if(!url.trim()){ sd.yt = null; saveSongs(); return openSong(sd); }
+    const id = ytId(url.trim()); if(!id) return toast('Enlace no válido');
+    sd.yt = id; if(sd.builtin) sd.unsynced = true; saveSongs(); openSong(sd);
+    toast('Vídeo añadido. Ahora pulsa ⏱ Sincronizar letra para ajustarla a esta versión');
+  };
+  $('#sd-local').onchange = e => {
+    const f = e.target.files[0]; if(!f) return;
+    localMedia[sd.id] = URL.createObjectURL(f); e.target.value='';
+    openSong(sd); toast('Archivo cargado para esta sesión');
+  };
+  $('#sd-sync').onclick = () => {
+    if(!sd.yt && !localMedia[sd.id]) return toast('Primero añade un vídeo de YouTube o un archivo local');
+    syncIdx = 0; startGame(sd, 'sync');
+  };
+  $('#sd-del').onclick = () => {
+    if(!confirm(`¿Eliminar "${sd.title}"?`)) return;
+    songs = songs.filter(s=>s!==sd);
+    if(sd.builtin){ removedBuiltins.add(sd.id); LS.set('removedBuiltins', [...removedBuiltins]); }
+    saveSongs(); show('home');
+  };
+  $('#sd-trans').onclick = () => { $('#tm-text').value = (sd.tcues||[]).map(t=>t.text).join('\n'); $('#trans-modal').classList.add('show'); };
+  $('#tm-cancel').onclick = () => $('#trans-modal').classList.remove('show');
+  $('#tm-file').onchange = async e => { const f=e.target.files[0]; if(f) $('#tm-text').value = await readFile(f); e.target.value=''; };
+  $('#tm-save').onclick = () => {
+    sd.tcues = buildTrans($('#tm-text').value, sd.cues); saveSongs();
+    $('#trans-modal').classList.remove('show'); toast('Traducción guardada');
+  };
+  function buildTrans(text, base){
+    if(!text.trim()) return [];
+    const timed = parseSubs(text);
+    if(timed.length) return timed;
+    return plainLines(text).slice(0, base.length).map((t,i)=>({start:base[i].start, end:base[i].end, text:t}));
+  }
+
+  // =================== Añadir canción ===================
+  const readFile = f => new Promise(r => { const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsText(f); });
+  function openSongModal(){
+    ['#m-title','#m-artist','#m-yt','#m-lyrics','#m-trans'].forEach(s=>$(s).value='');
+    $('#m-lang').value = settings.src;
+    $('#song-modal').classList.add('show');
+    setTimeout(()=>$('#m-title').focus(), 50);
+  }
+  $('#m-cancel').onclick = () => $('#song-modal').classList.remove('show');
+  $('#m-lyrics-file').onchange = async e => { const f=e.target.files[0]; if(f){ $('#m-lyrics').value = await readFile(f); if(!$('#m-title').value) $('#m-title').value = f.name.replace(/\.[^.]+$/,''); } e.target.value=''; };
+  $('#m-save').onclick = () => {
+    const title = $('#m-title').value.trim();
+    if(!title) return toast('Ponle un título');
+    const rawYt = $('#m-yt').value.trim(); const yt = ytId(rawYt);
+    if(rawYt && !yt) return toast('El enlace de YouTube no es válido');
+    const raw = $('#m-lyrics').value;
+    let cues = parseSubs(raw), unsynced = false;
+    if(!cues.length){
+      const lines = plainLines(raw);
+      if(!lines.length) return toast('Falta la letra');
+      cues = buildCues(lines.map(l=>[l])).cues; unsynced = true;
+    }
+    const s = {id: Date.now().toString(36), title, artist:$('#m-artist').value.trim(), yt, lang:$('#m-lang').value, level:$('#m-level').value, cues, tcues: buildTrans($('#m-trans').value, cues), unsynced, best:{}, added:Date.now()};
+    songs.unshift(s); saveSongs();
+    $('#song-modal').classList.remove('show');
+    toast('Canción guardada 🎵');
+    openSong(s);
+  };
+
+  // =================== Vocabulario ===================
   function updateCounts(){
     const list = Object.values(vocab);
     $('#vocab-count').textContent = list.length;
     $('#due-count').textContent = list.filter(v=>v.due<=Date.now()).length;
+    const lv = levelOf(stats.points);
+    $('#lvl-n').textContent = lv.n;
+    $('#lvl-ring').style.strokeDashoffset = 264*(1-lv.frac);
+    $('#h-points').textContent = stats.points;
+    $('#h-streak').textContent = streak();
+    $('#h-words').textContent = list.length;
+    $('#h-songs').textContent = Object.keys(stats.played).length;
+    $('#lang-btn').textContent = `${LANGS[settings.src]?.[1]||'🌍'} ${LANGS[settings.src]?.[0]||''}`;
   }
-  function dueText(d){
-    const diff = d - Date.now();
-    if(diff<=0) return '<span style="color:var(--warn)">Hoy</span>';
-    const days = Math.round(diff/DAY);
-    return days<1 ? 'Hoy' : days===1 ? 'Mañana' : `En ${days} días`;
-  }
+  function dueText(d){ const diff = d - Date.now(); if(diff<=0) return '<span style="color:var(--warn)">Hoy</span>'; const days = Math.round(diff/DAY); return days<1 ? 'Hoy' : days===1 ? 'Mañana' : `En ${days} días`; }
   function renderVocab(){
     const q = $('#vocab-search').value.trim().toLowerCase();
-    const list = Object.entries(vocab).sort((a,b)=>b[1].added-a[1].added)
-      .filter(([k,v]) => !q || v.word.includes(q) || (v.tr||'').toLowerCase().includes(q));
+    const list = Object.entries(vocab).sort((a,b)=>b[1].added-a[1].added).filter(([k,v]) => !q || v.word.includes(q) || (v.tr||'').toLowerCase().includes(q));
     $('#vocab-empty').style.display = Object.keys(vocab).length ? 'none' : 'block';
     $('#vocab-body').innerHTML = list.map(([k,v]) => `<tr data-k="${esc(k)}">
-      <td><b>${esc(v.word)}</b> <button class="x" data-act="speak" title="Escuchar">🔊</button><br><span class="muted" style="font-size:12px">${LANGS[v.src]||v.src}</span></td>
+      <td><b>${esc(v.word)}</b> <button class="x" data-act="speak" title="Escuchar">🔊</button><br><span class="muted" style="font-size:12px">${LANGS[v.src]?.[0]||v.src}</span></td>
       <td><input type="text" data-act="tr" value="${esc(v.tr||'')}"></td>
-      <td class="ctx">${esc(v.ctx||'')}${v.ctxTr?`<br><i>${esc(v.ctxTr)}</i>`:''}</td>
+      <td class="ctx">${esc(v.ctx||'')}${v.ctxTr?`<br><i>${esc(v.ctxTr)}</i>`:''}${v.song?`<br>🎵 ${esc(v.song)}`:''}</td>
       <td>${dueText(v.due)}</td>
       <td><button class="x" data-act="del" title="Eliminar">🗑</button></td></tr>`).join('');
   }
@@ -601,66 +1201,54 @@
     if(e.target.dataset.act==='del'){ if(confirm('¿Eliminar "'+vocab[k].word+'"?')){ delete vocab[k]; saveVocab(); renderVocab(); } }
     if(e.target.dataset.act==='speak') speak(vocab[k].word, vocab[k].src);
   };
-  $('#vocab-body').onchange = e => {
-    if(e.target.dataset.act!=='tr') return;
-    const k = e.target.closest('tr').dataset.k; vocab[k].tr = e.target.value.trim(); saveVocab(); toast('Guardado');
-  };
+  $('#vocab-body').onchange = e => { if(e.target.dataset.act!=='tr') return; const k = e.target.closest('tr').dataset.k; vocab[k].tr = e.target.value.trim(); saveVocab(); toast('Guardado'); };
   $('#add-word').onclick = () => {
     const w = prompt('Palabra o expresión:'); if(!w||!w.trim()) return;
     const t = prompt('Traducción:') || '';
-    const key = norm(w.trim())+'|'+settings.src;
-    vocab[key] = {word:norm(w.trim()), tr:t.trim(), src:settings.src, tgt:settings.tgt, ease:2.5, interval:0, reps:0, due:Date.now(), added:Date.now(), ctx:''};
+    vocab[norm(w.trim())+'|'+settings.src] = {word:norm(w.trim()), tr:t.trim(), src:settings.src, tgt:settings.tgt, ease:2.5, interval:0, reps:0, due:Date.now(), added:Date.now(), ctx:''};
     saveVocab(); renderVocab();
   };
-  const download = (name, content, type) => {
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content],{type})); a.download = name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-  };
-  $('#export-json').onclick = () => download(`frasea-copia-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify({vocab, settings, reviewLog}, null, 2), 'application/json');
+  const download = (name, content, type) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content],{type})); a.download = name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000); };
+  $('#export-json').onclick = () => download(`frasea-copia-${dayKey()}.json`, JSON.stringify({vocab, songs:songs.filter(s=>!s.builtin||s.yt||Object.keys(s.best||{}).length), stats, settings, reviewLog, removedBuiltins:[...removedBuiltins]}), 'application/json');
   $('#export-csv').onclick = () => {
     const q = s => '"'+String(s||'').replace(/"/g,'""')+'"';
-    const rows = Object.values(vocab).map(v => [v.word, v.tr, v.ctx, v.ctxTr].map(q).join(','));
-    download('frasea-vocabulario.csv', 'palabra,traduccion,contexto,contexto_traducido\n'+rows.join('\n'), 'text/csv');
+    download('frasea-vocabulario.csv', 'palabra,traduccion,contexto,contexto_traducido\n'+Object.values(vocab).map(v => [v.word, v.tr, v.ctx, v.ctxTr].map(q).join(',')).join('\n'), 'text/csv');
   };
   $('#import-json').onchange = async e => {
     const f = e.target.files[0]; if(!f) return;
     try{
       const d = JSON.parse(await readFile(f));
-      const incoming = d.vocab || d;
-      const n = Object.keys(incoming).length;
-      Object.assign(vocab, incoming); saveVocab(); renderVocab(); toast(n+' palabras importadas');
+      Object.assign(vocab, d.vocab||{}); saveVocab();
+      let ns = 0;
+      if(Array.isArray(d.songs)) d.songs.forEach(s=>{ const i = songs.findIndex(x=>x.id===s.id); if(i>=0) songs[i]=s; else { songs.push(s); ns++; } });
+      saveSongs();
+      if(d.stats){ stats.points = Math.max(stats.points, d.stats.points||0); Object.assign(stats.days, d.stats.days||{}); Object.assign(stats.played, d.stats.played||{}); stats.right=Math.max(stats.right,d.stats.right||0); stats.total=Math.max(stats.total,d.stats.total||0); saveStats(); }
+      renderVocab(); toast(`${Object.keys(d.vocab||{}).length} palabras y ${ns} canciones importadas`);
     }catch{ toast('Archivo no válido'); }
     e.target.value='';
   };
 
-  // ---------- Repaso (SM-2) ----------
+  // =================== Repaso (SM-2) ===================
   let queue = [], revealed = false;
-  const today = () => new Date().toISOString().slice(0,10);
-  function startReview(){
-    queue = Object.keys(vocab).filter(k=>vocab[k].due<=Date.now()).sort((a,b)=>vocab[a].due-vocab[b].due);
-    showCard();
-  }
+  function startReview(){ queue = Object.keys(vocab).filter(k=>vocab[k].due<=Date.now()).sort((a,b)=>vocab[a].due-vocab[b].due); showCard(); }
   function showCard(){
-    $('#r-due').textContent = queue.length;
-    $('#r-total').textContent = Object.keys(vocab).length;
-    $('#r-done').textContent = reviewLog[today()]||0;
+    $('#r-due').textContent = queue.length; $('#r-total').textContent = Object.keys(vocab).length; $('#r-done').textContent = reviewLog[dayKey()]||0;
     revealed = false;
     const f = $('#flash');
     if(!queue.length){
       const next = Object.values(vocab).sort((a,b)=>a.due-b.due)[0];
-      f.innerHTML = `<div style="font-size:40px">🎉</div><div class="front" style="font-size:22px">¡Nada pendiente!</div><div class="muted">${next?'Próximo repaso: '+dueText(next.due).replace(/<[^>]+>/g,''):'Guarda palabras desde el reproductor para empezar.'}</div>`;
+      f.innerHTML = `<div style="font-size:44px">🎉</div><div class="front" style="font-size:24px">¡Nada pendiente!</div><div class="muted">${next?'Próximo repaso: '+dueText(next.due).replace(/<[^>]+>/g,''):'Guarda palabras desde las canciones para empezar.'}</div>`;
       $('#grades').style.display='none'; return;
     }
     const v = vocab[queue[0]];
     const ctx = v.ctx ? esc(v.ctx).replace(new RegExp('('+v.word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<b style="color:var(--text)">$1</b>') : '';
-    f.innerHTML = `<div class="front">${esc(v.word)}</div>${ctx?`<div class="ctx">“${ctx}”</div>`:''}<div><button id="reveal" class="primary">Mostrar respuesta</button> <button id="r-speak">🔊</button></div>`;
+    f.innerHTML = `<div class="front">${esc(v.word)}</div>${ctx?`<div class="ctx">“${ctx}”</div>`:''}${v.song?`<div class="muted" style="font-size:13px">🎵 ${esc(v.song)}</div>`:''}<div><button id="reveal" class="primary">Mostrar respuesta</button> <button id="r-speak">🔊</button></div>`;
     $('#grades').style.display='none';
-    $('#reveal').onclick = reveal;
-    $('#r-speak').onclick = () => speak(v.word, v.src);
+    $('#reveal').onclick = reveal; $('#r-speak').onclick = () => speak(v.word, v.src);
     speak(v.word, v.src);
   }
   function reveal(){
-    if(!queue.length || revealed) return;
-    revealed = true;
+    if(!queue.length || revealed) return; revealed = true;
     const v = vocab[queue[0]];
     $('#reveal').parentElement.outerHTML = `<div class="back">${esc(v.tr||'(sin traducción)')}</div>${v.ctxTr?`<div class="ctx">${esc(v.ctxTr)}</div>`:''}`;
     $('#grades').style.display='flex';
@@ -675,52 +1263,68 @@
       v.ease = Math.max(1.3, v.ease + (0.1-(5-q)*(0.08+(5-q)*0.02)));
       v.due = Date.now() + v.interval*DAY;
     }
-    reviewLog[today()] = (reviewLog[today()]||0)+1; LS.set('reviewLog', reviewLog);
-    saveVocab(); showCard();
+    reviewLog[dayKey()] = (reviewLog[dayKey()]||0)+1; LS.set('reviewLog', reviewLog);
+    saveVocab(); activity(q<3?0:1); showCard();
   }
   $('#grades').onclick = e => { const b=e.target.closest('button'); if(b) grade(+b.dataset.g); };
 
-  // ---------- Ajustes ----------
-  const opts = Object.entries(LANGS).map(([c,n])=>`<option value="${c}">${n}</option>`).join('');
-  $('#src-lang').innerHTML = opts; $('#tgt-lang').innerHTML = opts;
+  // =================== Progreso ===================
+  function renderProgress(){
+    $('#d-streak').textContent = streak(); $('#d-points').textContent = stats.points;
+    $('#d-words').textContent = Object.keys(vocab).length; $('#d-songs').textContent = Object.keys(stats.played).length;
+    $('#d-acc').textContent = stats.total ? Math.round(stats.right/stats.total*100)+'%' : '—';
+    const names = ['D','L','M','X','J','V','S']; let html = '';
+    for(let k=6;k>=0;k--){ const d=new Date(); d.setDate(d.getDate()-k); html += `<div><i class="${stats.days[dayKey(d)]?'on':''}"></i>${names[d.getDay()]}</div>`; }
+    $('#week').innerHTML = html;
+  }
+
+  // =================== Idioma y ajustes ===================
+  function langPicker(first){
+    const count = l => songs.filter(s=>s.lang===l).length;
+    const order = Object.keys(LANGS).sort((a,b)=>count(b)-count(a));
+    dialog(`<h2>¿Qué idioma quieres aprender?</h2><div class="langs">${order.map(l=>`<button data-a="${l}">${LANGS[l][1]} ${LANGS[l][0]}<span class="n">${count(l)} canciones</span></button>`).join('')}</div>${first?'':'<div class="btns" style="margin-top:10px"><button data-a="">Cancelar</button></div>'}`,
+      l => { if(!l) return; settings.src = l; settings.chosen = true; if(settings.tgt===l) settings.tgt = l==='es'?'en':'es'; saveSettings(); $('#src-lang').value=l; $('#tgt-lang').value=settings.tgt; show('home'); });
+  }
+  $('#lang-btn').onclick = () => langPicker(false);
+  const opts = Object.entries(LANGS).map(([c,[n,f]])=>`<option value="${c}">${f} ${n}</option>`).join('');
+  $('#src-lang').innerHTML = opts; $('#tgt-lang').innerHTML = opts; $('#m-lang').innerHTML = opts;
   $('#src-lang').value = settings.src; $('#tgt-lang').value = settings.tgt;
   $('#online').checked = settings.online; $('#pause-on-click').checked = settings.pauseOnClick; $('#offset').value = settings.offset;
-  $('#src-lang').onchange = e => { settings.src=e.target.value; saveSettings(); renderSub(); };
+  $('#src-lang').onchange = e => { settings.src=e.target.value; saveSettings(); updateCounts(); };
   $('#tgt-lang').onchange = e => { settings.tgt=e.target.value; saveSettings(); };
   $('#online').onchange = e => { settings.online=e.target.checked; saveSettings(); };
   $('#pause-on-click').onchange = e => { settings.pauseOnClick=e.target.checked; saveSettings(); };
   $('#offset').onchange = e => { settings.offset=parseFloat(e.target.value.replace(',','.'))||0; e.target.value=settings.offset; saveSettings(); toast('Desfase: '+settings.offset+' s'); };
   $('#wipe').onclick = () => { if(confirm('¿Borrar TODOS los datos de Frasea? No se puede deshacer.')){ Object.keys(localStorage).filter(k=>k.startsWith('frasea_')).forEach(k=>localStorage.removeItem(k)); location.reload(); } };
 
-  // ---------- Teclado ----------
+  // =================== Teclado ===================
   document.addEventListener('keydown', e => {
     if(e.target.matches('input,select,textarea')) return;
-    if(e.key==='Escape') return closePopup();
-    const tab = $('.tab.active').id;
-    if(tab==='tab-review'){
+    if($('.modal-bg.show')){ if(e.key==='Escape' && !$('#dlg').classList.contains('show')) $$('.modal-bg.show').forEach(m=>m.classList.remove('show')); return; }
+    if(e.key==='Escape' && $('#popup').style.display==='block') return closePopup();
+    if(screen==='review'){
       if(e.code==='Space'){ e.preventDefault(); reveal(); }
       const g = {'1':0,'2':3,'3':4,'4':5}[e.key]; if(g!==undefined) grade(g);
       return;
     }
-    if(tab!=='tab-player') return;
+    if(screen!=='game') return;
     const k = e.key.toLowerCase();
-    if(e.code==='Space'){ e.preventDefault(); $('#b-play').click(); }
-    else if(k==='a'||e.key==='ArrowLeft'){ e.preventDefault(); step(-1); }
-    else if(k==='d'||e.key==='ArrowRight'){ e.preventDefault(); step(1); }
-    else if(k==='r') $('#b-replay').click();
-    else if(k==='l') $('#b-loop').click();
-    else if(k==='p') $('#b-autopause').click();
-    else if(k==='h') $('#b-hide').click();
-    else if(k==='t') $('#b-trans').click();
-    else if(k==='s') $('#b-speak').click();
+    if(G.mode==='sync'){ if(e.code==='Space'){ e.preventDefault(); markSync(); } if(e.key==='Escape') exitGame(); return; }
+    if(e.key==='Escape') return exitGame();
+    if(G.mode==='choice' && /^[1-4]$/.test(e.key)){ const b = $$('#answers .opts button')[+e.key-1]; if(b && !b.disabled) b.click(); return; }
+    if(e.code==='Space'){ e.preventDefault(); $('#t-play').click(); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); step(-1); }
+    else if(e.key==='ArrowRight'){ e.preventDefault(); step(1); }
+    else if(k==='r') $('#t-replay').click();
+    else if(G.mode==='karaoke'){
+      if(k==='l') $('#t-loop').click(); else if(k==='p') $('#t-auto').click(); else if(k==='t') $('#t-trans').click(); else if(k==='h') $('#t-hide').click(); else if(k==='s') $('#t-speak').click();
+    }
   });
-  video.addEventListener('keydown', e => { if(['Space','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault(); }, true);
 
-  // ---------- Inicio ----------
-  syncButtons(); updateCounts();
-  const last = LS.get('lastMedia', null);
-  if(last && last.startsWith('yt:')) $('#yt-url').value = 'https://www.youtube.com/watch?v='+last.slice(3);
+  // =================== Inicio ===================
+  syncButtons(); renderHome();
   if('speechSynthesis' in window) speechSynthesis.getVoices();
+  if(!settings.chosen) langPicker(true);
 })();
 </script>
 </body>
