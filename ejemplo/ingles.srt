@@ -1,0 +1,11 @@
+1
+00:00:00,500 --> 00:00:02,500
+Hello, how are you today?
+
+2
+00:00:03,000 --> 00:00:05,000
+I would like a cup of coffee.
+
+3
+00:00:05,500 --> 00:00:08,000
+The weather is beautiful this morning.
