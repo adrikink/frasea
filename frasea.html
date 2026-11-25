@@ -715,7 +715,7 @@
       await new Promise(res => {
         setTimeout(res, 6000);
         yt = new YT.Player('yt-player', { videoId:song.yt, playerVars:{rel:0, modestbranding:1, cc_load_policy:0, playsinline:1, iv_load_policy:3, controls:bare?0:1, disablekb:bare, fs:bare?0:1},
-          events:{ onReady:()=>{ ytReady=true; P.rate(settings.speed); res(); if(autoplay || P.want) P.play(); }, onStateChange:e=>{ if(e.data===0) onMediaEnded(); } } });
+          events:{ onReady:()=>{ ytReady=true; P.rate(settings.speed); res(); if(autoplay || P.want) P.play(); }, onStateChange:e=>{ if(e.data===0) onMediaEnded(); }, onError:e=>{ res(); onYtError(song, e.data); } } });
       });
     } else {
       mode='clock'; clock.t=0; clock.paused=true; clock.rate=settings.speed;
@@ -1210,9 +1210,10 @@
   let fResults = [];
   const fmtDur = s => s ? `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}` : '';
   function cleanTitle(track, artist){
-    let t = track;
-    const a = artist.split(/[,&]/)[0].trim();
-    t = t.replace(new RegExp('^\\s*'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[^-–]*[-–]\\s*','i'), '');
+    let t = track.replace(/\s+/g,' ').trim().replace(/^\d{1,3}\s*[-.)]\s*/, '');
+    const a = artist.replace(/\s+/g,' ').split(/[,&]/)[0].trim();
+    t = t.replace(new RegExp('^\\s*'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/ /g,'\\s+')+'[^-–]*[-–]\\s*','i'), '');
+    t = t.replace(/^\d{1,3}\s*[-.)]\s*/, '');
     t = t.replace(/\s*[\(\[][^\)\]]*(official|video|audio|lyric|visualizer|live|clip|remaster|hd|4k|cover|from|version)[^\)\]]*[\)\]]/ig, '');
     return t.trim() || track;
   }
@@ -1295,13 +1296,15 @@
       const groups = new Map();
       for(const x of data){ const t = cleanTitle(x.trackName, x.artistName), k = key2(t, x.artistName); if(!groups.has(k)) groups.set(k, {...x, title:t, cands:[]}); groups.get(k).cands.push({id:x.id, d:x.duration}); }
       const catKeys = new Set(catHits.map(c=>key2(c.title, c.artist)));
-      fResults = [...groups.values()].filter(x=>!catKeys.has(key2(x.title, x.artistName)));
+      const messy = x => (simp(x.title).includes(simp(x.artistName)) ? 2 : 0) + (x.title===x.title.toLowerCase() ? 1 : 0);
+      fResults = [...groups.values()].filter(x=>!catKeys.has(key2(x.title, x.artistName)))
+        .map((x,i)=>({x,i})).sort((p,q)=> messy(p.x)-messy(q.x) || q.x.cands.length-p.x.cands.length || p.i-q.i).map(o=>o.x);
       const lr = fResults.map((x,i) => {
         const have = songs.some(s=>s.lrclib===x.id);
         const lines = x.syncedLyrics.split('\n').filter(l=>l.replace(/\[[^\]]*\]/g,'').trim()).length;
         return `<div class="fr${have?' added':''}" data-i="${i}"><span class="ic">${have?'✓':'♪'}</span><div><div class="tt">${esc(x.title)}</div><div class="ar">${esc(x.artistName)}${x.albumName&&x.albumName!==x.trackName?' · '+esc(x.albumName):''}</div></div><div class="d">${fmtDur(x.duration)}<br>${lines} líneas</div></div>`;
       }).join('');
-      $('#f-results').innerHTML = catHTML + (lr ? `<div class="fr-h">Solo letra · añadirás el vídeo</div>` + lr : '') ||
+      $('#f-results').innerHTML = catHTML + (lr ? `<div class="fr-h">Más canciones</div>` + lr : '') ||
         '<div class="muted">No se encontraron letras sincronizadas. Prueba con otro nombre o pega el enlace de YouTube.</div>';
     }catch{ $('#f-results').innerHTML = catHTML || '<div class="muted">No se pudo conectar con el buscador. Revisa tu conexión.</div>'; }
   }
@@ -1318,10 +1321,66 @@
     const s = songFromLrclib(x, {lrCands:x.cands});
     if(!s) return toast('Esta letra no tiene tiempos válidos');
     songs.unshift(s); saveSongs();
-    toast('Canción añadida 🎵 Ahora pega su vídeo de YouTube');
     openSong(s);
-    setTimeout(()=>$('#sd-yt-in')?.focus(), 100);
   };
+
+  // =================== Vídeo automático (búsqueda en YouTube vía Piped) ===================
+  const PIPED = ['https://api.piped.private.coffee', 'https://pipedapi.ducks.party'];
+  const BAD_VID = /\b(live|en vivo|concert|reaction|react|cover|karaoke|instrumental|slowed|sped ?up|8d|nightcore|remix|tutorial|lesson|piano|guitar|drum|bass boosted|shorts?|tradu[cç][aã]o|traducida|subtitulad[oa]|letra en español)\b/i;
+  async function pipedSearch(q){
+    const order = [...PIPED].sort((a,b)=> (b===settings.piped) - (a===settings.piped));
+    for(const base of order){
+      try{
+        const ctl = new AbortController(); const tm = setTimeout(()=>ctl.abort(), 8000);
+        const r = await fetch(`${base}/search?q=${encodeURIComponent(q)}&filter=videos`, {signal:ctl.signal});
+        clearTimeout(tm);
+        if(!r.ok) continue;
+        const j = await r.json();
+        if(Array.isArray(j.items)){ if(settings.piped!==base){ settings.piped = base; saveSettings(); } return j.items; }
+      }catch{}
+    }
+    return null;
+  }
+  // Devuelve ids de YouTube ordenados de mejor a peor para esta canción
+  async function findVideos(title, artist, dur){
+    const items = await pipedSearch(`${mainArtist(artist||'')} ${title}`.trim());
+    if(!items) return [];
+    const st = simp(title), sa = simp(mainArtist(artist||''));
+    const scored = items.filter(x => x.type==='stream' && !x.isShort && x.duration>60 && /v=([\w-]{11})/.test(x.url)).map(x => {
+      const t = simp(x.title), up = simp(x.uploaderName||'');
+      let sc = 0;
+      if(!t.includes(st)) sc += 60;
+      if(sa && !(t.includes(sa) || up.includes(sa))) sc += 40;
+      const bad = (x.title.match(BAD_VID)||[])[0];
+      if(bad && !simp(title+' '+artist).includes(simp(bad))) sc += 80;
+      if(dur) sc += Math.min(120, Math.abs(x.duration - dur) * 3);
+      if(/official (music )?video|official audio|- topic$|vevo/i.test(x.title+' '+x.uploaderName)) sc -= 8;
+      return {id:x.url.match(/v=([\w-]{11})/)[1], sc};
+    }).filter(x => x.sc < 100).sort((a,b)=>a.sc-b.sc);
+    return [...new Set(scored.map(x=>x.id))].slice(0,5);
+  }
+  // Pone vídeo a una canción que no lo tiene. Devuelve true si lo encontró.
+  async function attachVideo(s){
+    if(!s || s.yt || s.builtin) return false;
+    s.videoTried = true;
+    const ids = await findVideos(s.title, s.artist, s.duration);
+    if(!ids.length){ saveSongs(); return false; }
+    s.yt = ids[0]; s.ytAlts = ids.slice(1); s.durChecked = false; saveSongs();
+    return true;
+  }
+  // Si YouTube no deja incrustar un vídeo, prueba el siguiente candidato
+  function onYtError(song, code){
+    if(![100,101,150].includes(code)) return;
+    if(song.ytAlts?.length){
+      song.yt = song.ytAlts.shift(); song.durChecked = false; saveSongs();
+      toast('Ese vídeo no se puede insertar; probando otro…');
+      if(screen==='game') startGame(song, G.mode, G.level); else openSong(song);
+    } else {
+      song.yt = null; saveSongs();
+      toast('YouTube no deja reproducir este vídeo aquí. Elige otro desde la ficha.');
+      if(screen==='game') openSong(song);
+    }
+  }
 
   // =================== Ficha de canción ===================
   let sd = null, pendingMode = null;
@@ -1337,14 +1396,18 @@
     $('#sd-meta').textContent = `${LANGS[s.lang]?.[1]||''} ${LANGS[s.lang]?.[0]||s.lang} · ${s.level} · ${s.cues.length} líneas${s.builtin?' · Dominio público':''}${localMedia[s.id]?' · 📁 archivo local':''}`;
     const warn = [];
     if(s.unsynced) warn.push('⏱ La letra aún no está sincronizada. Añade un vídeo o audio y pulsa <b>Sincronizar letra</b> para que vaya al ritmo de la música.');
-    if(!s.yt && !localMedia[s.id]){
+    const autoVid = !s.yt && !localMedia[s.id] && !s.builtin && !s.videoTried;
+    if(autoVid){
+      warn.push('<span class="info">🔎 Buscando el vídeo en YouTube…</span>');
+      attachVideo(s).then(ok => { if(sd===s && screen==='song'){ openSong(s); if(ok) toast('Vídeo encontrado 🎬'); } });
+    } else if(!s.yt && !localMedia[s.id]){
       const q = encodeURIComponent(`${s.builtin?'':s.artist+' '}${s.title}${s.lrclib?' official audio':''}`);
-      warn.push(`🎬 <b>Añade el vídeo para jugar con la música</b>${s.builtin?' (sin vídeo, la letra se lee en voz alta)':''}:<br>
+      warn.push(`🎬 <b>${s.builtin?'Añade el vídeo para jugar con la música':'No hemos encontrado el vídeo automáticamente'}</b>${s.builtin?' (sin vídeo, la letra se lee en voz alta)':''}:<br>
         1. <a href="https://www.youtube.com/results?search_query=${q}" target="_blank" style="color:var(--text);font-weight:800">Buscar “${esc(s.title)}” en YouTube ↗</a> y copia el enlace del vídeo.<br>
         2. Pégalo aquí: <span style="display:inline-flex;gap:6px;margin-top:6px;width:100%"><input type="text" id="sd-yt-in" placeholder="https://www.youtube.com/watch?v=…" style="flex:1"><button class="primary" id="sd-yt-ok">Usar vídeo</button></span>
         ${s.lrclib?'<br><span style="font-size:12px">Consejo: las versiones <i>“Official Audio”</i> o <i>“Lyrics”</i> suelen encajar mejor con la letra. Si va desfasada, ajústala en la partida con ⏪ / ⏩.</span>':''}`);
     }
-    $('#sd-warn').innerHTML = warn.map(w=>`<div class="warn-box">${w}</div>`).join('');
+    $('#sd-warn').innerHTML = warn.map(w=>`<div class="warn-box${w.includes('class="info"')?' info-box':''}">${w}</div>`).join('');
     if($('#sd-yt-ok')){
       const apply = () => { const id = ytId($('#sd-yt-in').value.trim()); if(!id) return toast('Enlace de YouTube no válido'); s.yt = id; if(s.builtin) s.unsynced = true; saveSongs(); openSong(s); toast('¡Vídeo añadido! Elige un modo de juego'); };
       $('#sd-yt-ok').onclick = apply;
