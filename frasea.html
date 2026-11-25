@@ -50,6 +50,21 @@
   .home-tools input{flex:1;min-width:200px}
   .row-title{display:flex;align-items:center;justify-content:space-between;margin:24px 0 10px}
   .row-title h3{margin:0;font-size:18px;font-weight:900}
+  .finder{margin-bottom:18px}
+  .finder h3{margin:0 0 10px;font-size:17px;font-weight:900}
+  .finder-row{display:flex;gap:8px;margin-bottom:10px}
+  .finder-row input{flex:1}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chips button{padding:6px 12px;font-size:13px;font-weight:700}
+  #f-results{display:grid;gap:6px;margin-top:12px;max-height:380px;overflow:auto}
+  .fr{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer}
+  .fr:hover{border-color:var(--accent)}
+  .fr .ic{font-size:22px}
+  .fr .tt{font-weight:800}
+  .fr .ar{color:var(--muted);font-size:13px}
+  .fr .d{margin-left:auto;color:var(--muted);font-size:12px;text-align:right}
+  .fr.added{opacity:.55}
+  .off-ctl{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
   .carousel{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,230px);gap:16px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory}
   .carousel::-webkit-scrollbar{height:8px}.carousel::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px}
   .song{scroll-snap-align:start;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;position:relative}
@@ -229,8 +244,27 @@
         <div><b id="h-songs">0</b>canciones jugadas</div>
       </div>
     </div>
+    <div class="card finder">
+      <h3>🔎 Busca cualquier canción con letra sincronizada</h3>
+      <div class="finder-row">
+        <input type="search" id="f-q" placeholder="Artista o canción… (ej. Sienna Spiro, RAYE Escapism)">
+        <button class="primary" id="f-go">Buscar</button>
+      </div>
+      <div class="chips" id="f-chips">
+        <button data-q="Sienna Spiro">⭐ Sienna Spiro</button>
+        <button data-q="RAYE">⭐ RAYE</button>
+        <button data-q="Adele">Adele</button>
+        <button data-q="Billie Eilish">Billie Eilish</button>
+        <button data-q="Ed Sheeran">Ed Sheeran</button>
+        <button data-q="Taylor Swift">Taylor Swift</button>
+        <button data-q="Dua Lipa">Dua Lipa</button>
+        <button data-q="Arctic Monkeys">Arctic Monkeys</button>
+      </div>
+      <div id="f-results"></div>
+      <div class="muted" style="font-size:12px;margin-top:8px">Letras de <a href="https://lrclib.net" target="_blank" style="color:var(--accent)">LRCLIB</a>, base de datos pública y gratuita. Se descargan al elegir la canción.</div>
+    </div>
     <div class="home-tools">
-      <input type="search" id="lib-search" placeholder="Buscar canción o artista…">
+      <input type="search" id="lib-search" placeholder="Buscar en tu biblioteca…">
       <button class="primary" id="add-song-btn">＋ Añadir canción</button>
     </div>
     <div id="rows"></div>
@@ -282,6 +316,7 @@
         <button id="t-play" title="Reproducir / pausa (Espacio)">⏯</button>
         <button id="t-next" title="Línea siguiente (→)">⏭</button>
         <button id="t-replay" title="Repetir línea (R)">↻</button>
+        <span class="off-ctl" title="Si la letra va adelantada o atrasada respecto al vídeo, ajústala aquí (se guarda en la canción)"><button id="t-earlier">⏪ Letra antes</button><span id="t-off">0.0s</span><button id="t-later">Letra después ⏩</button></span>
         <select id="speed" title="Velocidad">
           <option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="0.85">0.85×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option>
         </select>
@@ -675,7 +710,7 @@
     $('#g-title').textContent = `${song.title} · ${gmode==='sync'?'Sincronizar':MODES[gmode]}${level?' · '+LEVELS[level].name:''}`;
     $('#kara-tools').style.display = gmode==='karaoke' ? 'contents' : 'none';
     show('game');
-    syncButtons();
+    syncButtons(); showOff();
     G.cur = nextBlank(0);
     renderLyrics();
     renderAnswers(); updateHud();
@@ -745,6 +780,16 @@
     renderAnswers();
   }
   const isGame = () => G.mode==='choice' || G.mode==='write';
+  // Desfase total: ajuste general + ajuste propio de la canción
+  const OFF = () => settings.offset + (G.song?.offset || 0);
+  function showOff(){ const o = G.song?.offset||0; $('#t-off').textContent = `${o>0?'+':''}${o.toFixed(1)}s`; }
+  function nudge(d){
+    if(!G.song) return;
+    G.song.offset = Math.round(((G.song.offset||0) + d)*10)/10; saveSongs(); showOff();
+    toast(d>0 ? 'Letra adelantada 0.5 s' : 'Letra retrasada 0.5 s');
+  }
+  $('#t-earlier').onclick = () => nudge(+0.5);
+  $('#t-later').onclick = () => nudge(-0.5);
 
   // Respuestas
   function distractors(answer){
@@ -812,7 +857,7 @@
     }
     G.fails = 0; G.opts = null; G.optsFor = -1;
     updateBlank(bi);
-    const t = P.time() + settings.offset;
+    const t = P.time() + OFF();
     const n = nextBlank(t);
     setTimeout(()=>{
       setCur(n);
@@ -867,7 +912,7 @@
   // Bucle principal
   setInterval(() => {
     if(screen!=='game' || !mode || !cues.length || G.mode==='sync') return;
-    const t = P.time() + settings.offset;
+    const t = P.time() + OFF();
     const playing = !P.paused();
     if(mode==='clock' && playing && t > cues[cues.length-1].end + 0.6){ P.pause(); onMediaEnded(); return; }
     if(isGame() && G.cur>=0 && playing){
@@ -877,7 +922,7 @@
     }
     const c = cues[current];
     if(G.mode==='karaoke' && c && playing){
-      if(settings.loop && t >= c.end){ P.seek(c.start - settings.offset); return; }
+      if(settings.loop && t >= c.end){ P.seek(c.start - OFF()); return; }
       if(settings.autopause && t >= c.end - 0.05 && pausedForCue!==current){ pausedForCue=current; P.pause(); return; }
     }
     if(G.mode==='karaoke' && settings.loop && c && t>=c.start-0.3 && t<c.end+0.3) return;
@@ -892,14 +937,14 @@
   function goTo(i, play=true){
     if(i<0 || i>=cues.length) return;
     pausedForCue = -1; G.waiting = false;
-    P.seek(cues[i].start - settings.offset + 0.01);
+    P.seek(cues[i].start - OFF() + 0.01);
     setCurrent(i, true);
     if(isGame()){ const n = nextBlank(cues[i].start); if(n!==G.cur) setCur(n); }
     if(play) P.play();
   }
   const step = d => {
     if(!cues.length) return;
-    const t = P.time()+settings.offset;
+    const t = P.time()+OFF();
     let i = current<0 ? Math.max(0,cueAt(t)) : current;
     if(d<0 && current>=0 && t - cues[current].start > 1.5) d = 0;
     goTo(Math.min(cues.length-1, Math.max(0,i+d)));
@@ -1064,6 +1109,52 @@
   };
   $('#add-song-btn').onclick = () => openSongModal();
 
+  // =================== Buscador de letras (LRCLIB) ===================
+  let fResults = [];
+  const fmtDur = s => s ? `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}` : '';
+  function cleanTitle(track, artist){
+    let t = track;
+    const a = artist.split(/[,&]/)[0].trim();
+    t = t.replace(new RegExp('^\\s*'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[^-–]*[-–]\\s*','i'), '');
+    t = t.replace(/\s*[\(\[][^\)\]]*(official|video|audio|lyric|visualizer|live|clip|remaster|hd|4k)[^\)\]]*[\)\]]/ig, '');
+    return t.trim() || track;
+  }
+  async function findSongs(q){
+    q = q.trim(); if(!q) return;
+    $('#f-q').value = q;
+    $('#f-results').innerHTML = '<div class="muted">Buscando…</div>';
+    try{
+      const r = await fetch('https://lrclib.net/api/search?q='+encodeURIComponent(q));
+      const data = await r.json();
+      const seen = new Set();
+      fResults = data.filter(x => x.syncedLyrics && !x.instrumental).map(x => ({...x, title: cleanTitle(x.trackName, x.artistName)}))
+        .filter(x => { const k = (x.title+'|'+x.artistName).toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true; });
+      if(!fResults.length){ $('#f-results').innerHTML = '<div class="muted">No se encontraron letras sincronizadas. Prueba con otro nombre.</div>'; return; }
+      $('#f-results').innerHTML = fResults.map((x,i) => {
+        const have = songs.some(s=>s.lrclib===x.id);
+        const lines = x.syncedLyrics.split('\n').filter(l=>l.replace(/\[[^\]]*\]/g,'').trim()).length;
+        return `<div class="fr${have?' added':''}" data-i="${i}"><span class="ic">${have?'✅':'🎵'}</span><div><div class="tt">${esc(x.title)}</div><div class="ar">${esc(x.artistName)}${x.albumName&&x.albumName!==x.trackName?' · '+esc(x.albumName):''}</div></div><div class="d">${fmtDur(x.duration)}<br>${lines} líneas</div></div>`;
+      }).join('');
+    }catch{ $('#f-results').innerHTML = '<div class="muted">No se pudo conectar con el buscador. Revisa tu conexión.</div>'; }
+  }
+  $('#f-go').onclick = () => findSongs($('#f-q').value);
+  $('#f-q').onkeydown = e => { if(e.key==='Enter') findSongs($('#f-q').value); };
+  $('#f-chips').onclick = e => { const b = e.target.closest('[data-q]'); if(b) findSongs(b.dataset.q); };
+  $('#f-results').onclick = e => {
+    const el = e.target.closest('.fr'); if(!el) return;
+    const x = fResults[+el.dataset.i];
+    const existing = songs.find(s=>s.lrclib===x.id);
+    if(existing) return openSong(existing);
+    const cues = parseLRC(x.syncedLyrics);
+    if(!cues.length) return toast('Esta letra no tiene tiempos válidos');
+    const words = cues.reduce((a,c)=>a+c.text.split(/\s+/).length,0)/cues.length;
+    const s = {id:'lr'+x.id, lrclib:x.id, title:x.title, artist:x.artistName, yt:null, lang:settings.src, level: words<6?'Básico':words<9?'Intermedio':'Avanzado', cues, tcues:[], best:{}, added:Date.now(), duration:x.duration};
+    songs.unshift(s); saveSongs();
+    toast('Canción añadida 🎵 Ahora pega su vídeo de YouTube');
+    openSong(s);
+    setTimeout(()=>$('#sd-yt-in')?.focus(), 100);
+  };
+
   // =================== Ficha de canción ===================
   let sd = null, pendingMode = null;
   function openSong(s){
@@ -1078,8 +1169,20 @@
     $('#sd-meta').textContent = `${LANGS[s.lang]?.[1]||''} ${LANGS[s.lang]?.[0]||s.lang} · ${s.level} · ${s.cues.length} líneas${s.builtin?' · Dominio público':''}${localMedia[s.id]?' · 📁 archivo local':''}`;
     const warn = [];
     if(s.unsynced) warn.push('⏱ La letra aún no está sincronizada. Añade un vídeo o audio y pulsa <b>Sincronizar letra</b> para que vaya al ritmo de la música.');
-    if(!s.yt && !localMedia[s.id]) warn.push('🎤 Sin vídeo: la letra se leerá en voz alta. Pulsa <b>Vídeo de YouTube</b> para jugar con la música.');
+    if(!s.yt && !localMedia[s.id]){
+      const q = encodeURIComponent(`${s.builtin?'':s.artist+' '}${s.title}${s.lrclib?' official audio':''}`);
+      warn.push(`🎬 <b>Añade el vídeo para jugar con la música</b>${s.builtin?' (sin vídeo, la letra se lee en voz alta)':''}:<br>
+        1. <a href="https://www.youtube.com/results?search_query=${q}" target="_blank" style="color:var(--text);font-weight:800">Buscar “${esc(s.title)}” en YouTube ↗</a> y copia el enlace del vídeo.<br>
+        2. Pégalo aquí: <span style="display:inline-flex;gap:6px;margin-top:6px;width:100%"><input type="text" id="sd-yt-in" placeholder="https://www.youtube.com/watch?v=…" style="flex:1"><button class="primary" id="sd-yt-ok">Usar vídeo</button></span>
+        ${s.lrclib?'<br><span style="font-size:12px">Consejo: las versiones <i>“Official Audio”</i> o <i>“Lyrics”</i> suelen encajar mejor con la letra. Si va desfasada, ajústala en la partida con ⏪ / ⏩.</span>':''}`);
+    }
     $('#sd-warn').innerHTML = warn.map(w=>`<div class="warn-box">${w}</div>`).join('');
+    if($('#sd-yt-ok')){
+      const apply = () => { const id = ytId($('#sd-yt-in').value.trim()); if(!id) return toast('Enlace de YouTube no válido'); s.yt = id; if(s.builtin) s.unsynced = true; saveSongs(); openSong(s); toast('¡Vídeo añadido! Elige un modo de juego'); };
+      $('#sd-yt-ok').onclick = apply;
+      $('#sd-yt-in').onkeydown = e => { e.stopPropagation(); if(e.key==='Enter') apply(); };
+      $('#sd-yt-in').addEventListener('paste', () => setTimeout(()=>{ if(ytId($('#sd-yt-in').value.trim())) apply(); }, 50));
+    }
     renderModes();
   }
   function renderModes(){
