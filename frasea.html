@@ -1551,9 +1551,9 @@
 
   // =================== Idioma y ajustes ===================
   function langPicker(first){
-    const count = l => songs.filter(s=>s.lang===l).length;
+    const count = l => songs.filter(s=>s.lang===l).length + (l===CAT_LANG ? CAT.filter(c=>!songs.some(s=>s.yt===c.yt)).length : 0);
     const order = Object.keys(LANGS).sort((a,b)=>count(b)-count(a));
-    dialog(`<h2>¿Qué idioma quieres aprender?</h2><div class="langs">${order.map(l=>`<button data-a="${l}">${LANGS[l][1]} ${LANGS[l][0]}<span class="n">${count(l)} canciones</span></button>`).join('')}</div>${first?'':'<div class="btns" style="margin-top:10px"><button data-a="">Cancelar</button></div>'}`,
+    dialog(`<h2>¿Qué idioma quieres aprender?</h2><div class="langs">${order.map(l=>`<button data-a="${l}">${LANGS[l][1]} ${LANGS[l][0]}<span class="n">${count(l)} ${count(l)===1?'canción':'canciones'}</span></button>`).join('')}</div>${first?'':'<div class="btns" style="margin-top:10px"><button data-a="">Cancelar</button></div>'}`,
       l => { if(!l) return; settings.src = l; settings.chosen = true; if(settings.tgt===l) settings.tgt = l==='es'?'en':'es'; saveSettings(); $('#src-lang').value=l; $('#tgt-lang').value=settings.tgt; show('home'); });
   }
   $('#lang-btn').onclick = () => langPicker(false);
