@@ -18,6 +18,10 @@ Pulsa cualquier palabra para traducirla y guardarla en tu vocabulario, que repas
 
 ## Canciones
 
+**Catálogo listo para jugar:** más de 500 canciones en inglés que ya traen su vídeo de YouTube (`catalogo.js`). Al abrir una, Frasea descarga su letra sincronizada de LRCLIB y elige la versión cuya duración coincide con el vídeo.
+
+También puedes **pegar un enlace de YouTube** en el buscador: Frasea lee el título del vídeo y busca la letra sola.
+
 Incluye canciones de dominio público (sin vídeo se leen en voz alta; puedes añadirles un vídeo de YouTube y sincronizar la letra).
 Para añadir cualquier canción: **＋ Añadir canción** → enlace de YouTube + letra (.lrc/.srt/.vtt o texto normal) → **⏱ Sincronizar letra** marcando cada línea al ritmo.
 
